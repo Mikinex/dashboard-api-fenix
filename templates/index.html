@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fénix API Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --sklik-dark: #1a1f2e;
+      --sklik-blue: #0066cc;
+      --sklik-green: #00a651;
+    }
+    body { background:#f0f2f5; font-size:.88rem; color:#1a1a2e; }
+    .topbar { background:var(--sklik-dark); padding:10px 20px; display:flex; align-items:center; gap:16px; }
+    .topbar .brand { color:#fff; font-weight:700; font-size:1rem; letter-spacing:-.3px; }
+    .topbar .sub { color:#8899bb; font-size:.78rem; margin-left:auto; }
+
+    .card { border:none; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+    .section-title { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#8899bb; margin-bottom:10px; }
+
+    .kpi { border-radius:10px; padding:14px 16px; }
+    .kpi .val { font-size:1.65rem; font-weight:800; line-height:1; }
+    .kpi .lbl { font-size:.68rem; text-transform:uppercase; letter-spacing:.5px; margin-top:4px; opacity:.7; }
+    .kpi-primary  { background:linear-gradient(135deg,#0066cc22,#0066cc11); border:1px solid #0066cc33; }
+    .kpi-success  { background:linear-gradient(135deg,#19875422,#19875411); border:1px solid #19875433; }
+    .kpi-warning  { background:linear-gradient(135deg,#fd7e1422,#fd7e1411); border:1px solid #fd7e1433; }
+    .kpi-danger   { background:linear-gradient(135deg,#dc354522,#dc354511); border:1px solid #dc354533; }
+    .kpi-neutral  { background:#f8f9fa; border:1px solid #dee2e6; }
+
+    .tbl th { font-size:.74rem; font-weight:600; text-transform:uppercase; letter-spacing:.4px; color:#6c757d; white-space:nowrap; border-bottom:2px solid #e9ecef; }
+    .tbl td { vertical-align:middle; border-color:#f0f2f5; }
+    .tbl tbody tr:hover { background:#f8f9fa; }
+
+    .mini-bar { height:5px; border-radius:3px; background:#e9ecef; overflow:hidden; }
+    .mini-bar .fill { height:100%; border-radius:3px; transition:width .5s; }
+
+    .bp { background:#19875422; color:#198754; border:1px solid #19875455; font-size:.7rem; border-radius:4px; padding:1px 6px; }
+    .bu { background:#6c757d22; color:#6c757d; border:1px solid #6c757d55; font-size:.7rem; border-radius:4px; padding:1px 6px; }
+    .bc-red    { background:#dc354522; color:#dc3545; border:1px solid #dc354555; font-size:.7rem; border-radius:4px; padding:1px 6px; }
+    .bc-orange { background:#fd7e1422; color:#fd7e14; border:1px solid #fd7e1455; font-size:.7rem; border-radius:4px; padding:1px 6px; }
+    .bc-green  { background:#19875422; color:#198754; border:1px solid #19875455; font-size:.7rem; border-radius:4px; padding:1px 6px; }
+    .bc-blue   { background:#0066cc22; color:#0066cc; border:1px solid #0066cc55; font-size:.7rem; border-radius:4px; padding:1px 6px; }
+
+    .rec { border-left:3px solid #dee2e6; border-radius:8px; padding:12px 14px; background:#fff; margin-bottom:10px; }
+    .rec.critical  { border-left-color:#dc3545; }
+    .rec.important { border-left-color:#fd7e14; }
+    .rec.tip       { border-left-color:#198754; }
+    pre.xml { background:#1e2030; color:#c0caf5; border-radius:6px; padding:10px 14px; font-size:.74rem; overflow-x:auto; white-space:pre; margin-top:8px; }
+
+    .stars { color:#f5a623; letter-spacing:2px; }
+
+    #ov { display:none; position:fixed; inset:0; background:rgba(255,255,255,.9); z-index:9999; align-items:center; justify-content:center; flex-direction:column; }
+    #ov.on { display:flex; }
+    .spin-prog { width:280px; height:4px; background:#e9ecef; border-radius:2px; overflow:hidden; margin-top:16px; }
+    .spin-fill { height:100%; background:linear-gradient(90deg,#0066cc,#00a651); border-radius:2px; transition:width 1s ease; }
+
+    .nav-tabs .nav-link { font-size:.82rem; padding:.38rem .9rem; color:#6c757d; }
+    .nav-tabs .nav-link.active { color:#0066cc; font-weight:600; border-bottom:2px solid #0066cc; }
+    .tab-content { padding-top:16px; }
+
+    .itbl th { cursor:pointer; }
+    .itbl th:hover { background:#f8f9fa; }
+    .thumb { width:34px; height:34px; object-fit:contain; border-radius:4px; background:#f8f9fa; }
+    .iname { max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    .chart-wrap { position:relative; height:260px; }
+  </style>
+</head>
+<body>
+
+<!-- Spinner -->
+<div id="ov">
+  <div class="spinner-border text-primary mb-3" style="width:2.5rem;height:2.5rem" role="status"></div>
+  <div class="fw-semibold" id="sp-title">Načítám data ze Sklik API Fénix…</div>
+  <div class="text-muted small mt-1" id="sp-msg"></div>
+  <div class="spin-prog"><div class="spin-fill" id="sp-bar" style="width:5%"></div></div>
+</div>
+
+<!-- Top bar -->
+<div class="topbar">
+  <span class="brand"><i class="bi bi-cart3 me-2"></i>Fénix API Dashboard</span>
+  <span class="sub" id="nav-sub"></span>
+</div>
+
+<div class="container-fluid px-3 py-3" style="max-width:1600px">
+
+  <!-- Login -->
+  <div class="card mb-3" id="login-card">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-sm-5 col-md-4 col-lg-3">
+          <label class="form-label fw-semibold small mb-1">API klíč (refresh token)</label>
+          <div class="input-group input-group-sm">
+            <input type="password" class="form-control" id="api_key" placeholder="">
+            <button class="btn btn-outline-secondary" onclick="toggleKey()" type="button"><i class="bi bi-eye" id="eye-i"></i></button>
+          </div>
+        </div>
+        <div class="col-sm-3 col-md-2 col-lg-2">
+          <label class="form-label fw-semibold small mb-1">User ID</label>
+          <input type="text" class="form-control form-control-sm" id="user_id" placeholder="" list="user_id_list" autocomplete="off">
+          <datalist id="user_id_list"></datalist>
+        </div>
+        <div class="col-sm-3 col-md-2 col-lg-2">
+          <label class="form-label fw-semibold small mb-1">Premise ID</label>
+          <input type="text" class="form-control form-control-sm" id="premise_id" placeholder="" list="premise_id_list" autocomplete="off">
+          <datalist id="premise_id_list"></datalist>
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-primary btn-sm px-4" onclick="runAnalysis()"><i class="bi bi-search me-1"></i>Načíst</button>
+        </div>
+        <div class="col-12 col-lg-auto ms-auto">
+          <small class="text-muted"><i class="bi bi-shield-lock me-1"></i>Údaje se neukládají, vše probíhá lokálně.</small>
+        </div>
+      </div>
+      <div class="alert alert-danger mt-2 mb-0 d-none small" id="err" style="white-space:pre-wrap"></div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results" class="d-none">
+
+    <!-- KPI row -->
+    <div class="row g-2 mb-3" id="kpi-row"></div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs border-bottom mb-0" id="tabs">
+      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#t-overview">Přehled</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-stats">Statistiky</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-cats">Kategorie <span id="cats-badge" class="badge bg-secondary ms-1 small"></span></button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-items">Položky <span id="items-badge" class="badge bg-secondary ms-1 small"></span></button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-reviews">Recenze <span id="rev-badge" class="badge bg-secondary ms-1 small"></span></button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-params">Parametry <span id="params-badge" class="badge bg-secondary ms-1 small"></span></button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-recs">Doporučení</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-api">API stav</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-explorer"><i class="bi bi-terminal me-1"></i>API Explorer</button></li>
+    </ul>
+
+    <div class="tab-content">
+
+      <!-- PŘEHLED -->
+      <div class="tab-pane fade show active" id="t-overview">
+        <div class="row g-3">
+          <div class="col-lg-3">
+            <div class="card h-100"><div class="card-body">
+              <div class="section-title">Stav položek</div>
+              <div class="chart-wrap" style="height:180px"><canvas id="donut-items"></canvas></div>
+              <div id="items-legend" class="mt-2"></div>
+            </div></div>
+          </div>
+          <div class="col-lg-5">
+            <div class="card h-100"><div class="card-body">
+              <div class="section-title">Konkurenční analýza (z dat produktových karet)</div>
+              <div id="comp-summary"></div>
+            </div></div>
+          </div>
+          <div class="col-lg-4">
+            <div class="card h-100"><div class="card-body">
+              <div class="section-title">Kampaně</div>
+              <div id="camp-block"></div>
+            </div></div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card"><div class="card-body">
+              <div class="section-title">XML Feed</div>
+              <div id="feed-block"></div>
+            </div></div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card"><div class="card-body">
+              <div class="section-title">Diagnostika (z API)</div>
+              <div id="diag-block"></div>
+            </div></div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card"><div class="card-body">
+              <div class="section-title"><i class="bi bi-arrow-up-circle text-danger me-1"></i>Dražší než konkurence</div>
+              <div id="comp-overpriced" class="small"></div>
+            </div></div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card"><div class="card-body">
+              <div class="section-title"><i class="bi bi-trophy text-success me-1"></i>Vaše nejlepší ceny</div>
+              <div id="comp-cheapest" class="small"></div>
+            </div></div>
+          </div>
+          <div class="col-12">
+            <div class="card"><div class="card-body">
+              <div class="section-title"><i class="bi bi-fire text-warning me-1"></i>Nejžádanější produkty (nejvíc eshopů na kartě)</div>
+              <div id="comp-demand" class="small"></div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATISTIKY -->
+      <div class="tab-pane fade" id="t-stats">
+        <div class="row g-3">
+          <div class="col-12" id="stats-kpis"></div>
+          <div class="col-12">
+            <div class="card"><div class="card-body">
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="section-title mb-0">Vývoj za 30 dní</span>
+                <button class="btn btn-outline-success btn-sm ms-2" onclick="exportCSV('statistiky',REPORT.raw_stats_daily)"><i class="bi bi-download me-1"></i>CSV</button>
+                <div class="btn-group btn-group-sm ms-auto" id="chart-btns">
+                  <button class="btn btn-primary btn-sm active" onclick="setChart('vc',this)">Zobrazení & Kliknutí</button>
+                  <button class="btn btn-outline-secondary btn-sm" onclick="setChart('cc',this)">Náklady & Konverze</button>
+                </div>
+              </div>
+              <div class="chart-wrap"><canvas id="daily-chart"></canvas></div>
+            </div></div>
+          </div>
+          <div class="col-lg-12">
+            <div class="card h-100"><div class="card-body">
+              <div class="section-title">Souhrn výkonu</div>
+              <div id="perf-detail"></div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KATEGORIE -->
+      <div class="tab-pane fade" id="t-cats">
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="card"><div class="card-body">
+              <div class="d-flex align-items-center mb-3">
+                <span class="section-title mb-0">Výkon kategorií – kliknutí vs zobrazení (30 dní)</span>
+              </div>
+              <div class="chart-wrap" style="height:240px"><canvas id="cat-chart"></canvas></div>
+            </div></div>
+          </div>
+          <div class="col-12">
+            <div class="card"><div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <span class="section-title mb-0">Detailní analýza kategorií</span>
+                <button class="btn btn-outline-success btn-sm ms-2" onclick="exportCSV('kategorie',REPORT.categories_analysis)"><i class="bi bi-download me-1"></i>CSV</button>
+              </div>
+              <div class="table-responsive"><div id="cat-table"></div></div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- POLOŽKY -->
+      <div class="tab-pane fade" id="t-items">
+        <div class="card"><div class="card-body">
+          <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+            <div class="input-group input-group-sm" style="max-width:280px">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input type="text" class="form-control" id="isearch" placeholder="Název, ID, kategorie…" oninput="filterItems()">
+            </div>
+            <div class="btn-group btn-group-sm" id="ifilter">
+              <button class="btn btn-primary active" onclick="setIFilter('all',this)">Vše</button>
+              <button class="btn btn-outline-primary" onclick="setIFilter('paired',this)">Spárované</button>
+              <button class="btn btn-outline-primary" onclick="setIFilter('unpaired',this)">Nespárované</button>
+              <button class="btn btn-outline-warning" onclick="setIFilter('expensive',this)">Dražší než min</button>
+              <button class="btn btn-outline-danger" onclick="setIFilter('noparam',this)">Bez parametrů</button>
+            </div>
+            <button class="btn btn-outline-success btn-sm" onclick="exportCSV('items',_allI)"><i class="bi bi-download me-1"></i>CSV</button>
+            <span class="text-muted small ms-auto" id="i-count"></span>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm table-hover tbl itbl mb-2">
+              <thead><tr>
+                <th style="width:40px"></th>
+                <th onclick="sortI('name')">Název ↕</th>
+                <th onclick="sortI('category')">Kategorie ↕</th>
+                <th onclick="sortI('price')" class="text-end">Cena ↕</th>
+                <th onclick="sortI('minPriceCompetitors')" class="text-end">Min. u ostatních ↕</th>
+                <th onclick="sortI('priceVsMin')" class="text-end">Poměr ↕</th>
+                <th onclick="sortI('shopCount')" class="text-end">Eshopů ↕</th>
+                <th>Spárováno</th>
+                <th onclick="sortI('topPosition')" class="text-end">Pozice ↕</th>
+                <th onclick="sortI('suggestedCpc')" class="text-end">Dopor. CPC ↕</th>
+                <th onclick="sortI('maxCpc')" class="text-end">Max CPC ↕</th>
+              </tr></thead>
+              <tbody id="itbody"></tbody>
+            </table>
+          </div>
+          <div class="d-flex align-items-center justify-content-between">
+            <button class="btn btn-sm btn-outline-secondary" onclick="pageI(-1)"><i class="bi bi-chevron-left"></i></button>
+            <span class="small text-muted" id="ipage"></span>
+            <button class="btn btn-sm btn-outline-secondary" onclick="pageI(1)"><i class="bi bi-chevron-right"></i></button>
+          </div>
+        </div></div>
+      </div>
+
+      <!-- RECENZE -->
+      <div class="tab-pane fade" id="t-reviews">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="card h-100"><div class="card-body">
+              <div class="section-title">Hodnocení obchodu</div>
+              <div id="rev-summary"></div>
+            </div></div>
+          </div>
+          <div class="col-md-8">
+            <div class="card h-100"><div class="card-body">
+              <div class="section-title">Poslední recenze zákazníků</div>
+              <div id="rev-list" style="max-height:450px;overflow-y:auto"></div>
+            </div></div>
+          </div>
+          <div class="col-12">
+            <div class="card"><div class="card-body">
+              <div class="section-title">Recenze produktů</div>
+              <div id="prod-rev-list"></div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PARAMETRY -->
+      <div class="tab-pane fade" id="t-params">
+        <div class="card"><div class="card-body">
+          <div class="section-title mb-3">Analýza parametrů dle Zboží.cz specifikace</div>
+          <div id="params-analysis"></div>
+        </div></div>
+      </div>
+
+      <!-- DOPORUČENÍ -->
+      <div class="tab-pane fade" id="t-recs">
+        <ul class="nav nav-pills mb-3">
+          <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#rp-feed">Feed &amp; XML</button></li>
+          <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#rp-sklik">Sklik Nákupy</button></li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="rp-feed"><div id="feed-recs"></div></div>
+          <div class="tab-pane fade" id="rp-sklik"><div id="sklik-recs"></div></div>
+        </div>
+      </div>
+
+      <!-- API STAV -->
+      <div class="tab-pane fade" id="t-api">
+        <div class="row g-3">
+          <div class="col-md-5">
+            <div class="card"><div class="card-body">
+              <div class="section-title">Stav endpointů</div>
+              <div id="ep-list"></div>
+            </div></div>
+          </div>
+          <div class="col-md-7">
+            <div class="card"><div class="card-body">
+              <div class="section-title">Varování</div>
+              <div id="warn-list" class="small"></div>
+            </div></div>
+          </div>
+          <div class="col-12">
+            <div class="card"><div class="card-body">
+              <div class="section-title">Raw diagnostics JSON</div>
+              <pre id="raw-diag" class="xml" style="max-height:260px;overflow-y:auto;font-size:.72rem"></pre>
+            </div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- API EXPLORER -->
+      <div class="tab-pane fade" id="t-explorer">
+        <div class="card"><div class="card-body">
+          <div class="section-title">API Explorer – Sklik Fénix</div>
+          <div class="row g-2 mb-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold mb-1">Endpoint</label>
+              <select class="form-select form-select-sm" id="ex-endpoint" onchange="exEndpointChanged()">
+                <optgroup label="Diagnostika & Položky">
+                  <option value="diagnostics">diagnostics – Diagnostika feedu</option>
+                  <option value="items" selected>items – Položky s detailem (max 30)</option>
+                  <option value="items_basic">items_basic – Položky bez detailu</option>
+                </optgroup>
+                <optgroup label="Feed & Kampaně">
+                  <option value="feeds">feeds – XML feedy</option>
+                  <option value="feed_download">feed_download – Stáhnout a parsovat XML feed</option>
+                  <option value="campaigns">campaigns – Kampaně</option>
+                </optgroup>
+                <optgroup label="Statistiky">
+                  <option value="stats_item">stats_item – Statistiky položek (POST)</option>
+                  <option value="stats_category">stats_category – Dle kategorií (POST)</option>
+                </optgroup>
+                <optgroup label="Recenze">
+                  <option value="reviews">reviews – Recenze obchodu</option>
+                  <option value="product_reviews">product_reviews – Recenze produktů</option>
+                </optgroup>
+                <optgroup label="Katalog">
+                  <option value="products">products – Detail produktů</option>
+                  <option value="categories">categories – Kategorie</option>
+                  <option value="categories_tree">categories_tree – Strom kategorií</option>
+                  <option value="manufacturers">manufacturers – Výrobci</option>
+                </optgroup>
+              </select>
+            </div>
+            <div class="col-md-5" id="ex-params-wrap"></div>
+            <div class="col-md-3 d-flex align-items-end gap-2">
+              <button class="btn btn-primary btn-sm px-4" onclick="exCall()"><i class="bi bi-play-fill me-1"></i>Zavolat</button>
+              <button class="btn btn-outline-secondary btn-sm" onclick="exCopy()" title="Kopírovat"><i class="bi bi-clipboard"></i></button>
+            </div>
+          </div>
+          <div class="alert alert-danger d-none small mb-2" id="ex-err"></div>
+          <div id="ex-spinner" class="d-none text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> <span class="small text-muted">Volám API…</span></div>
+          <pre id="ex-result" class="xml" style="max-height:500px;overflow-y:auto;font-size:.72rem;display:none"></pre>
+        </div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+const esc  = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const num  = (n,d=0) => n==null?'—':Number(n).toLocaleString('cs-CZ',{minimumFractionDigits:d,maximumFractionDigits:d});
+const pct  = (a,b)   => b>0 ? Math.round(a/b*100)+'%' : '—';
+const avg  = arr     => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;
+
+function stars(score, max=5) {
+  const full = Math.round(score);
+  return '★'.repeat(full) + '☆'.repeat(Math.max(0,max-full));
+}
+function priceRatioBadge(r) {
+  if (!r) return '<span class="text-muted">—</span>';
+  const pct = Math.round((r-1)*100);
+  if (r <= 1.0) return `<span class="bc-green">nejlevnější</span>`;
+  if (r <= 1.05) return `<span class="bc-blue">+${pct}%</span>`;
+  if (r <= 1.15) return `<span class="bc-orange">+${pct}%</span>`;
+  return `<span class="bc-red">+${pct}%</span>`;
+}
+function cpcGapBadge(gap) {
+  if (gap == null) return '—';
+  if (gap > 1) return `<span class="bc-red">+${num(gap,2)} Kč chybí</span>`;
+  if (gap > 0) return `<span class="bc-orange">+${num(gap,2)} Kč</span>`;
+  if (gap < -1) return `<span class="bc-green">${num(gap,2)} Kč přebývá</span>`;
+  return `<span class="bc-green">OK</span>`;
+}
+function ctrBadge(ctr) {
+  if (ctr == null) return '—';
+  if (ctr >= 2.0) return `<span class="bc-green">${num(ctr,2)} %</span>`;
+  if (ctr >= 0.5) return `<span class="bc-orange">${num(ctr,2)} %</span>`;
+  return `<span class="bc-red">${num(ctr,2)} %</span>`;
+}
+
+/* SPINNER */
+function startSpin(){
+  document.getElementById('ov').classList.add('on');
+  document.getElementById('sp-bar').style.width='2%';
+  document.getElementById('sp-msg').textContent='Spouštím analýzu…';
+}
+function updateSpin(pct,msg){
+  document.getElementById('sp-bar').style.width=pct+'%';
+  document.getElementById('sp-msg').textContent=msg;
+}
+function stopSpin(){ document.getElementById('ov').classList.remove('on'); }
+
+/* LOGIN */
+function toggleKey(){ const i=document.getElementById('api_key'),e=document.getElementById('eye-i'); i.type=i.type==='password'?'text':'password'; e.className=i.type==='password'?'bi bi-eye':'bi bi-eye-slash'; }
+['premise_id','api_key','user_id'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')runAnalysis();}));
+
+/* Našeptávač – localStorage */
+function _saveHistory(key, val){
+  if(!val) return;
+  const stored = JSON.parse(localStorage.getItem('fenix_'+key)||'[]');
+  const updated = [val, ...stored.filter(v=>v!==val)].slice(0,10);
+  localStorage.setItem('fenix_'+key, JSON.stringify(updated));
+}
+function _loadHistory(key, datalistId){
+  const stored = JSON.parse(localStorage.getItem('fenix_'+key)||'[]');
+  const dl = document.getElementById(datalistId);
+  if(dl) dl.innerHTML = stored.map(v=>`<option value="${v}">`).join('');
+  // předvyplnit pole posledně použitou hodnotou
+  const inp = document.getElementById(key);
+  if(inp && !inp.value && stored.length) inp.value = stored[0];
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  _loadHistory('user_id','user_id_list');
+  _loadHistory('premise_id','premise_id_list');
+});
+
+async function runAnalysis(){
+  const key=document.getElementById('api_key').value.trim();
+  const uid=document.getElementById('user_id').value.trim();
+  const pid=document.getElementById('premise_id').value.trim();
+  const err=document.getElementById('err');
+  err.classList.add('d-none');
+  if(!key){ err.textContent='Vyplňte API klíč (refresh token).'; err.classList.remove('d-none'); return; }
+  startSpin();
+  try{
+    const resp=await fetch('/analyze/stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({api_key:key,premise_id:pid,user_id:uid||null})});
+    if(!resp.ok){
+      let msg='Chyba serveru ('+resp.status+').';
+      try{ const d=await resp.json(); msg=d.error||msg; }catch(e){}
+      stopSpin(); err.textContent=msg; err.classList.remove('d-none'); return;
+    }
+    const ct=resp.headers.get('content-type')||'';
+    if(!ct.includes('text/event-stream')){
+      let msg='Neočekávaná odpověď serveru.';
+      try{ const d=await resp.json(); if(d.error) msg=d.error; }catch(e){}
+      stopSpin(); err.textContent=msg; err.classList.remove('d-none'); return;
+    }
+    const reader=resp.body.getReader();
+    const decoder=new TextDecoder();
+    let buf='';
+    while(true){
+      const {done,value}=await reader.read();
+      if(done) break;
+      buf+=decoder.decode(value,{stream:true});
+      const lines=buf.split('\n');
+      buf=lines.pop();
+      for(const line of lines){
+        if(!line.startsWith('data: ')) continue;
+        try{
+          const ev=JSON.parse(line.slice(6));
+          if(ev.type==='progress') updateSpin(ev.pct,ev.msg);
+          else if(ev.type==='result'){
+            stopSpin();
+            _saveHistory('user_id', uid);
+            _saveHistory('premise_id', pid);
+            _loadHistory('user_id','user_id_list');
+            _loadHistory('premise_id','premise_id_list');
+            REPORT=ev.data; renderAll(ev.data);
+            document.getElementById('results').classList.remove('d-none');
+            document.getElementById('results').scrollIntoView({behavior:'smooth'});
+          }else if(ev.type==='error'){
+            stopSpin();
+            err.textContent=(ev.error||'Chyba.')+(ev.trace?'\n\n'+ev.trace:'');
+            err.style.fontFamily=ev.trace?'monospace':'inherit';
+            err.classList.remove('d-none');
+          }
+        }catch(e){}
+      }
+    }
+    if(!REPORT){
+      updateSpin(50,'Stream přerušen, zkouším znovu…');
+      try{
+        const r2=await fetch('/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({api_key:key,premise_id:pid,user_id:uid||null})});
+        const txt=await r2.text();
+        stopSpin();
+        try{
+          const d=JSON.parse(txt);
+          if(!r2.ok){ err.textContent=(d.error||'Chyba.')+(d.trace?'\n\n'+d.trace:''); err.style.fontFamily=d.trace?'monospace':'inherit'; err.classList.remove('d-none'); return; }
+          REPORT=d; renderAll(d);
+          document.getElementById('results').classList.remove('d-none');
+          document.getElementById('results').scrollIntoView({behavior:'smooth'});
+        }catch(e2){ err.textContent='Server vrátil neplatnou odpověď.'; err.classList.remove('d-none'); }
+      }catch(e2){ stopSpin(); err.textContent='Síťová chyba: '+e2.message; err.classList.remove('d-none'); }
+    }
+  }catch(e){ stopSpin(); err.textContent='Síťová chyba: '+e.message; err.classList.remove('d-none'); }
+}
+
+/* RENDER ALL */
+let REPORT=null, _chart=null;
+
+function renderAll(r){
+  renderKPIs(r);
+  renderOverview(r);
+  renderStats(r);
+  renderCategories(r);
+  renderItems(r);
+  renderReviews(r);
+  renderRecs(r);
+  renderParamsAnalysis(r);
+  renderApiStatus(r);
+  document.getElementById('nav-sub').textContent=`Provozovna ${r.shop_id} · ${r.generated_at}`;
+}
+
+/* KPI ROW */
+function renderKPIs(r){
+  const cs=r.competition_summary||{};
+  const tiles=[
+    {v:num(r.items_total),    l:'Položek celkem',   cls:'kpi-primary',  i:'box-seam'},
+    {v:pct(r.items_paired,r.items_total), l:'Spárováno', cls: r.items_paired/r.items_total>=.85?'kpi-success':'kpi-warning', i:'link-45deg'},
+    {v:num(r.items_errors),   l:'Chyby ve feedu',   cls:r.items_errors>0?'kpi-danger':'kpi-success', i:'x-circle'},
+    {v:num(r.items_no_ean),   l:'Bez EAN',          cls:r.items_no_ean>0?'kpi-warning':'kpi-success', i:'upc-scan'},
+    {v:num(r.items_no_params),l:'Bez parametrů',    cls:r.items_no_params>0?'kpi-warning':'kpi-success', i:'sliders'},
+    {v:num(r.items_no_delivery),l:'Bez dostupnosti',cls:r.items_no_delivery>0?'kpi-warning':'kpi-success', i:'truck'},
+    {v:num(r.perf_views),     l:'Zobrazení 30d',    cls:'kpi-neutral',  i:'eye'},
+    {v:num(r.perf_clicks),    l:'Kliknutí 30d',     cls:'kpi-primary',  i:'cursor'},
+    {v:r.perf_ctr+'%',        l:'CTR',              cls:r.perf_ctr>=1?'kpi-success':r.perf_ctr>0?'kpi-warning':'kpi-neutral', i:'percent'},
+    {v:num(r.perf_cost,0)+' Kč',l:'Náklady 30d',   cls:'kpi-neutral',  i:'currency-exchange'},
+    {v:num(r.perf_avg_cpc,2)+' Kč',l:'Prům. CPC',  cls:'kpi-neutral',  i:'tag'},
+    {v:num(r.perf_conversions), l:'Konverze 30d',   cls:r.perf_conversions>0?'kpi-success':'kpi-warning', i:'bag-check'},
+    {v:r.perf_pno>0?r.perf_pno.toFixed(1)+'%':'—',  l:'PNO',              cls:r.perf_pno<=0?'kpi-neutral':r.perf_pno<15?'kpi-success':r.perf_pno<25?'kpi-warning':'kpi-danger', i:'pie-chart'},
+    {v:num(r.reviews_total),  l:'Recenzí',          cls:'kpi-neutral',  i:'star'},
+    {v:cs.avgShopCount?cs.avgShopCount.toFixed(1):'—', l:'Prům. eshopů/karta', cls:'kpi-neutral', i:'shop'},
+    {v:r.items_price_worse>0?num(r.items_price_worse):'✓', l:'Dražší než min +5%', cls:r.items_price_worse>0?'kpi-warning':'kpi-success', i:'arrow-up-circle'},
+    {v:num(r.perf_conversions>0?r.perf_conv_rate:null)+( r.perf_conv_rate?'%':''), l:'Konv. poměr', cls:'kpi-neutral', i:'graph-up-arrow'},
+  ];
+  document.getElementById('kpi-row').innerHTML=tiles.map(t=>`
+    <div class="col-6 col-md-3 col-lg-2 col-xl-1-5">
+      <div class="kpi ${t.cls}">
+        <div class="val">${esc(String(t.v))}</div>
+        <div class="lbl"><i class="bi bi-${t.i} me-1"></i>${t.l}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* OVERVIEW TAB */
+function renderOverview(r){
+  renderDonut('donut-items',['V pořádku','Chyby','Lze zlepšit'],
+    [r.items_ok,r.items_errors,r.items_improvements],['#198754','#dc3545','#fd7e14']);
+  document.getElementById('items-legend').innerHTML=[
+    {l:'V pořádku',v:r.items_ok,c:'#198754'},
+    {l:'Chyby',v:r.items_errors,c:'#dc3545'},
+    {l:'Lze zlepšit',v:r.items_improvements,c:'#fd7e14'},
+  ].map(x=>`<div class="d-flex justify-content-between small mb-1">
+    <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${x.c};margin-right:5px"></span>${x.l}</span>
+    <strong>${num(x.v)}</strong></div>`).join('');
+
+  // Competitive summary
+  const cs=r.competition_summary||{};
+  const compItems=[
+    ['Průměrný počet eshopů na kartě', cs.avgShopCount!=null?cs.avgShopCount.toFixed(1)+' eshopů':'—', cs.avgShopCount>15?'bc-red':cs.avgShopCount>8?'bc-orange':'bc-green'],
+    ['Median eshopů na kartě', cs.medianShopCount!=null?cs.medianShopCount.toFixed(0)+' eshopů':'—', 'bc-blue'],
+    ['Položky s nejlepší cenou (do ±5 %)', num(cs.priceBetterThan10pct), 'bc-green'],
+    ['Položky o 10 %+ dražší', num(cs.priceWorseThan10pct), cs.priceWorseThan10pct>0?'bc-red':'bc-green'],
+    ['Průměrný poměr ceny / min. ceny', cs.avgPriceVsMin!=null?'×'+cs.avgPriceVsMin.toFixed(3):'—', cs.avgPriceVsMin>1.1?'bc-orange':'bc-green'],
+    ['Položky s konkurenčními daty', num(cs.itemsWithCompetition), 'bc-blue'],
+  ];
+  document.getElementById('comp-summary').innerHTML=`
+    <table class="table table-sm tbl mb-0">
+      <tbody>${compItems.map(([l,v,c])=>`<tr>
+        <td class="text-muted">${esc(l)}</td>
+        <td class="text-end"><span class="${c} fw-semibold">${esc(String(v))}</span></td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+
+  // Campaign
+  const camp=r.campaign_info||{};
+  if(camp.campaigns){
+    document.getElementById('camp-block').innerHTML=camp.campaigns.map((c,i)=>`
+      <div class="small mb-2 pb-2 border-bottom">
+        <strong>Kampaň ${i+1}</strong>: ${esc(c.name||c.id||'—')}
+        ${c.status?`<span class="bc-blue ms-1">${esc(c.status)}</span>`:''}
+      </div>`).join('');
+  } else if(Object.keys(camp).length){
+    document.getElementById('camp-block').innerHTML=Object.entries(camp).map(([k,v])=>`<div class="d-flex justify-content-between small mb-1"><span class="text-muted">${esc(k)}</span><strong>${esc(String(v??'—'))}</strong></div>`).join('');
+  } else {
+    document.getElementById('camp-block').innerHTML='<span class="text-muted small">Data kampaně nedostupná</span>';
+  }
+
+  // Feeds
+  const feeds=r.feeds_info||[];
+  document.getElementById('feed-block').innerHTML=feeds.length
+    ? feeds.map(f=>`<div class="small mb-2 pb-2 border-bottom">
+        <div class="text-truncate"><i class="bi bi-rss me-1 text-warning"></i><span class="text-primary">${esc(f.feedUrl||f.url||'—')}</span></div>
+        <div class="d-flex gap-3 mt-1 text-muted">
+          <span><i class="bi bi-clock me-1"></i>${esc(f.lastSuccessfulImportFormatted||'—')}</span>
+        </div></div>`).join('')
+    : '<span class="text-muted small">Feed info nedostupné</span>';
+
+  // Diagnostics
+  const diag=r.raw_diagnostics||{};
+  const diagLabels={total:'Celkem položek',ok:'V pořádku',error:'S chybou',canBeImproved:'Ke zlepšení',
+    notVisible:'Neviditelné',withoutCategory:'Bez kategorie',
+    okPercentage:'V pořádku %',canBeImprovedPercentage:'Ke zlepšení %',
+    errorPercentage:'S chybou %',notVisiblePercentage:'Neviditelné %'};
+  const diagColor=k=>k.match(/ok/i)?'success':k.match(/err/i)?'danger':k.match(/notVis/i)?'danger':k.match(/improv/i)?'warning':k.match(/withoutCat/i)?'warning':'secondary';
+  document.getElementById('diag-block').innerHTML=Object.entries(diag).length
+    ? Object.entries(diag).map(([k,v])=>{
+        const c=diagColor(k);
+        const label=diagLabels[k]||k;
+        return `<div class="d-flex justify-content-between small mb-1 p-2 rounded bg-${c}-subtle">
+          <span>${esc(label)}</span><strong class="text-${c}">${esc(String(v))}</strong></div>`;
+      }).join('')
+    : '<span class="text-muted small">Diagnostika nedostupná</span>';
+
+  // Overpriced
+  const ovp=(cs.topOverpriced||[]);
+  document.getElementById('comp-overpriced').innerHTML=ovp.length
+    ? `<div class="table-responsive"><table class="table table-sm tbl mb-0"><thead><tr>
+        <th>Produkt</th><th class="text-end">Vaše cena</th><th class="text-end">Min. u ostatních</th><th class="text-end">Doporuč.</th><th class="text-end">Rozdíl</th><th class="text-end">Eshopů</th>
+      </tr></thead><tbody>${ovp.map(i=>`<tr>
+        <td title="${esc(i.itemId||'')}">${esc((i.productName||i.itemId||'').substring(0,50))}</td>
+        <td class="text-end">${num(i.price)} Kč</td>
+        <td class="text-end text-success fw-semibold">${i.minPriceCompetitors!=null?num(i.minPriceCompetitors)+' Kč':'—'}</td>
+        <td class="text-end text-primary fw-semibold">${i.recommendedPrice?num(i.recommendedPrice)+' Kč':'—'}</td>
+        <td class="text-end text-danger">${i.priceSavings?'+'+num(i.priceSavings)+' Kč':'—'}</td>
+        <td class="text-end">${i.shopCount||'—'}</td>
+      </tr>`).join('')}</tbody></table></div>`
+    : '<span class="text-muted">Žádné položky dražší než konkurence o >5 %</span>';
+
+  // Cheapest
+  const chp=(cs.topCheapest||[]);
+  document.getElementById('comp-cheapest').innerHTML=chp.length
+    ? `<div class="table-responsive"><table class="table table-sm tbl mb-0"><thead><tr>
+        <th>Produkt</th><th class="text-end">Vaše cena</th><th class="text-end">Min. u ostatních</th><th class="text-end">Výhoda</th><th class="text-end">Eshopů</th>
+      </tr></thead><tbody>${chp.map(i=>`<tr>
+        <td title="${esc(i.itemId||'')}">${esc((i.productName||i.itemId||'').substring(0,50))}</td>
+        <td class="text-end text-success fw-semibold">${num(i.price)} Kč</td>
+        <td class="text-end">${i.minPriceCompetitors!=null?num(i.minPriceCompetitors)+' Kč':'—'}</td>
+        <td class="text-end text-success">${i.priceAdvantage?'-'+num(i.priceAdvantage)+' Kč':'= min'}</td>
+        <td class="text-end">${i.shopCount||'—'}</td>
+      </tr>`).join('')}</tbody></table></div>`
+    : '<span class="text-muted">Žádné položky s nejlepší cenou</span>';
+
+  // High demand
+  const hd=(cs.topHighDemand||[]);
+  document.getElementById('comp-demand').innerHTML=hd.length
+    ? `<div class="table-responsive"><table class="table table-sm tbl mb-0"><thead><tr>
+        <th>Produkt</th><th>Kategorie</th><th class="text-end">Vaše cena</th><th class="text-end">Eshopů</th><th class="text-end">Cena vs min</th>
+      </tr></thead><tbody>${hd.map(i=>{
+        const ratio=i.priceVsMin;
+        const rc=ratio>1.1?'text-danger':ratio>1.0?'text-warning':'text-success';
+        return `<tr>
+        <td title="${esc(i.itemId||'')}">${esc((i.productName||i.itemId||'').substring(0,50))}</td>
+        <td>${esc((i.category||'').substring(0,30))}</td>
+        <td class="text-end">${num(i.price)} Kč</td>
+        <td class="text-end fw-semibold">${i.shopCount}</td>
+        <td class="text-end ${rc}">${ratio?'×'+ratio.toFixed(2):'—'}</td>
+      </tr>`;}).join('')}</tbody></table></div>`
+    : '<span class="text-muted">Žádné produkty s 3+ eshopy</span>';
+}
+
+function renderDonut(id,labels,data,colors){
+  const ctx=document.getElementById(id);
+  if(!ctx)return;
+  if(!data.some(v=>v>0)){ ctx.parentElement.innerHTML='<div class="text-muted text-center py-4 small">Žádná data</div>'; return; }
+  new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'58%'}});
+}
+
+/* STATS TAB */
+let _daily=[], _chartMode='vc';
+
+function renderStats(r){
+  _daily=r.raw_stats_daily||[];
+  const kd=[
+    ['Zobrazení','eye',num(r.perf_views)],
+    ['Kliknutí','cursor',num(r.perf_clicks)],
+    ['CTR','percent',r.perf_ctr+'%'],
+    ['Náklady','currency-exchange',num(r.perf_cost,0)+' Kč'],
+    ['Prům. CPC','tag',num(r.perf_avg_cpc,2)+' Kč'],
+    ['Konverze','bag-check',num(r.perf_conversions)],
+    ['Konv. %','graph-up-arrow',r.perf_conv_rate+'%'],
+    ['PNO','pie-chart',r.perf_pno>0?r.perf_pno.toFixed(1)+'%':'—'],
+    ['Hodnota konv.','cash-coin',r.perf_conv_value>0?num(r.perf_conv_value,0)+' Kč':'—'],
+  ];
+  document.getElementById('stats-kpis').innerHTML=`<div class="card mb-0"><div class="card-body py-2">
+    <div class="row g-0 text-center">
+      ${kd.map(([l,i,v])=>`<div class="col"><div class="fw-bold">${v}</div><div class="text-muted" style="font-size:.68rem;text-transform:uppercase"><i class="bi bi-${i} me-1"></i>${l}</div></div>`).join('')}
+    </div></div></div>`;
+  drawDailyChart();
+  document.getElementById('perf-detail').innerHTML=`
+    <div class="row g-2">
+      ${[
+        ['Průměrné denní výdaje',num(r.perf_cost/30,0)+' Kč'],
+        ['Průměrná denní kliknutí',num(r.perf_clicks/30,0)],
+        ['Celkové výdaje (30d)',num(r.perf_cost,0)+' Kč'],
+        ['Průměrné CPC',num(r.perf_avg_cpc,2)+' Kč'],
+        ['Konverzní poměr',r.perf_conv_rate+'%'],
+        ['Konverze',num(r.perf_conversions)],
+        ['Hodnota konverzí',r.perf_conv_value>0?num(r.perf_conv_value,0)+' Kč':'—'],
+        ['PNO',r.perf_pno>0?r.perf_pno.toFixed(1)+'%':'—'],
+      ].map(([l,v])=>`<div class="col-6 col-md-4 col-lg-2"><div class="border rounded p-2 text-center">
+        <div class="fw-semibold">${v}</div>
+        <div class="text-muted" style="font-size:.68rem">${l}</div>
+      </div></div>`).join('')}
+    </div>`;
+}
+
+function setChart(mode,btn){
+  _chartMode=mode;
+  document.querySelectorAll('#chart-btns button').forEach(b=>b.className='btn btn-outline-secondary btn-sm');
+  btn.className='btn btn-primary btn-sm active';
+  drawDailyChart();
+}
+
+function drawDailyChart(){
+  if(!_daily.length)return;
+  const labels=_daily.map(d=>{
+    const v=d.date;
+    if(!v)return'';
+    if(typeof v==='number')return new Date(v*1000).toLocaleDateString('cs-CZ',{day:'numeric',month:'short'});
+    return String(v).length>=10?String(v).substring(5,10).replace('-','.'):v;
+  });
+  const ds=_chartMode==='vc'?[
+    {label:'Zobrazení',data:_daily.map(d=>d.views||0),borderColor:'#0066cc',backgroundColor:'#0066cc18',fill:true,tension:.35,pointRadius:2},
+    {label:'Kliknutí', data:_daily.map(d=>d.clicks||0),borderColor:'#fd7e14',backgroundColor:'#fd7e1418',fill:true,tension:.35,yAxisID:'y2',pointRadius:2},
+  ]:[
+    {label:'Náklady (Kč)',data:_daily.map(d=>d.cost||0),borderColor:'#dc3545',backgroundColor:'#dc354518',fill:true,tension:.35,pointRadius:2},
+    {label:'Konverze',  data:_daily.map(d=>d.conversions||0),borderColor:'#198754',backgroundColor:'#19875418',fill:true,tension:.35,yAxisID:'y2',pointRadius:2},
+  ];
+  if(_chart)_chart.destroy();
+  _chart=new Chart(document.getElementById('daily-chart'),{type:'line',data:{labels,datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'top',labels:{boxWidth:12,font:{size:11}}}},
+      scales:{y:{beginAtZero:true,grid:{color:'#0001'}},y2:{beginAtZero:true,position:'right',grid:{drawOnChartArea:false}}}}});
+}
+
+/* CATEGORIES TAB */
+function renderCategories(r){
+  const cats=r.categories_analysis||[];
+  document.getElementById('cats-badge').textContent=cats.length;
+  const topCats=cats.filter(c=>c.clicks>0).slice(0,10);
+  if(topCats.length){
+    new Chart(document.getElementById('cat-chart'),{type:'bar',
+      data:{
+        labels:topCats.map(c=>{const n=c.category||'?'; return n.length>25?n.substring(0,22)+'…':n;}),
+        datasets:[
+          {label:'Kliknutí',data:topCats.map(c=>c.clicks||0),backgroundColor:'#0066cc99',yAxisID:'y'},
+          {label:'Zobrazení /100',data:topCats.map(c=>Math.round((c.views||0)/100)),backgroundColor:'#e9ecef',yAxisID:'y'},
+        ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12}}},
+        scales:{y:{beginAtZero:true,grid:{color:'#0001'}},x:{ticks:{font:{size:11}}}}}});
+  } else {
+    document.getElementById('cat-chart').parentElement.innerHTML='<div class="text-muted text-center py-4 small">Statistiky kategorií nedostupné</div>';
+  }
+  if(!cats.length){ document.getElementById('cat-table').innerHTML='<span class="text-muted small">Data nedostupná</span>'; return; }
+  document.getElementById('cat-table').innerHTML=`
+    <table class="table table-sm tbl mb-0">
+      <thead><tr>
+        <th>Kategorie</th><th class="text-end">Pol.</th><th class="text-end">Spárováno</th>
+        <th class="text-end">Prům. eshopů</th><th class="text-end">Cena vs min</th>
+        <th class="text-end">Kliknutí</th><th class="text-end">CTR</th>
+        <th class="text-end">Náklady</th><th class="text-end">Konv.</th>
+        <th class="text-end">CPC gap</th><th class="text-center">Bez param.</th><th class="text-center">Bez EAN</th>
+      </tr></thead>
+      <tbody>${cats.map(c=>`<tr>
+        <td class="fw-semibold" style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.category)}">${esc(c.category||'—')}</td>
+        <td class="text-end">${num(c.items)}</td>
+        <td class="text-end">${c.pairedPct}%</td>
+        <td class="text-end">${c.avgShopCount!=null?c.avgShopCount.toFixed(1):'—'}</td>
+        <td class="text-end">${priceRatioBadge(c.avgPriceVsMin)}</td>
+        <td class="text-end fw-semibold">${c.clicks>0?num(c.clicks):'—'}</td>
+        <td class="text-end">${c.clicks>0?ctrBadge(c.ctr):'—'}</td>
+        <td class="text-end">${c.clicks>0?num(c.cost,0)+' Kč':'—'}</td>
+        <td class="text-end">${c.clicks>0?num(c.conversions):'—'}</td>
+        <td class="text-end">${cpcGapBadge(c.cpcGap)}</td>
+        <td class="text-center">${c.noParams>0?`<span class="bc-orange">${c.noParams}</span>`:'<span class="bc-green">✓</span>'}</td>
+        <td class="text-center">${c.noEan>0?`<span class="bc-orange">${c.noEan}</span>`:'<span class="bc-green">✓</span>'}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+}
+
+/* ITEMS TAB */
+let _allI=[], _filtI=[], _iSort='name', _iAsc=true, _iFilter='all', _iPage=0;
+const PAGE=50;
+
+function renderItems(r){
+  _allI=r.raw_items||[];
+  document.getElementById('items-badge').textContent=num(r.items_total);
+  filterItems();
+}
+
+function setIFilter(f,btn){ _iFilter=f; _iPage=0; document.querySelectorAll('#ifilter button').forEach(b=>b.className='btn btn-outline-primary'); btn.className='btn btn-primary active'; filterItems(); }
+
+function filterItems(){
+  const q=document.getElementById('isearch').value.toLowerCase();
+  _filtI=_allI.filter(i=>{
+    if(_iFilter==='paired'   && !i.paired)return false;
+    if(_iFilter==='unpaired' && i.paired)return false;
+    if(_iFilter==='expensive'&& !(i.priceVsMin>1.05))return false;
+    if(_iFilter==='noparam'  && i.hasParams)return false;
+    if(q&&!((i.name||'').toLowerCase().includes(q)||(i.id||'').includes(q)||(i.category||'').toLowerCase().includes(q)))return false;
+    return true;
+  });
+  sortIBy();
+}
+
+function sortI(k){ if(_iSort===k)_iAsc=!_iAsc; else{_iSort=k;_iAsc=true;} _iPage=0; sortIBy(); }
+function sortIBy(){
+  _filtI.sort((a,b)=>{
+    let av=a[_iSort],bv=b[_iSort];
+    if(av==null)av=_iAsc?Infinity:-Infinity;
+    if(bv==null)bv=_iAsc?Infinity:-Infinity;
+    if(typeof av==='string')return _iAsc?av.localeCompare(bv,'cs'):bv.localeCompare(av,'cs');
+    return _iAsc?av-bv:bv-av;
+  });
+  renderIPage();
+}
+function pageI(d){ const mp=Math.max(0,Math.ceil(_filtI.length/PAGE)-1); _iPage=Math.max(0,Math.min(mp,_iPage+d)); renderIPage(); }
+
+function renderIPage(){
+  const start=_iPage*PAGE, sl=_filtI.slice(start,start+PAGE), tot=_filtI.length;
+  document.getElementById('i-count').textContent=`Zobrazeno ${Math.min(start+1,tot)}–${Math.min(start+PAGE,tot)} z ${num(tot)}`;
+  document.getElementById('ipage').textContent=`${_iPage+1} / ${Math.max(1,Math.ceil(tot/PAGE))}`;
+  document.getElementById('itbody').innerHTML=sl.map(i=>{
+    const img=i.img?`<img src="${esc(i.img)}" class="thumb" onerror="this.style.display='none'">`:`<div class="thumb d-inline-flex align-items-center justify-content-center text-muted bg-light"><i class="bi bi-image"></i></div>`;
+    return `<tr>
+      <td>${img}</td>
+      <td><div class="iname" title="${esc(i.name)}">${i.url?`<a href="${esc(i.url)}" target="_blank" class="text-decoration-none text-dark">${esc(i.name)}</a>`:esc(i.name)}</div>
+        <div class="text-muted" style="font-size:.7rem">${esc(i.id)}${i.manufacturer?' · '+esc(i.manufacturer):''}</div></td>
+      <td><span title="${esc(i.categoryPath||i.category||'')}" style="cursor:default">${esc(i.category||'—')}</span></td>
+      <td class="text-end fw-semibold">${i.price!=null?num(i.price,0)+' Kč':'—'}</td>
+      <td class="text-end">${i.minPriceCompetitors!=null?num(i.minPriceCompetitors,0)+' Kč':i.minPrice!=null?num(i.minPrice,0)+' Kč':'—'}</td>
+      <td class="text-end">${priceRatioBadge(i.priceVsMin)}</td>
+      <td class="text-end">${i.shopCount!=null?`<span class="${i.shopCount>15?'bc-red':i.shopCount>8?'bc-orange':'bc-green'}">${i.shopCount}</span>`:'—'}</td>
+      <td>${i.paired?'<span class="bp">✓ Ano</span>':'<span class="bu">✗ Ne</span>'}</td>
+      <td class="text-end">${i.topPosition!=null?(i.topPosition===0?'—':`<span class="bc-blue">${i.topPosition}</span>`):'—'}</td>
+      <td class="text-end">${i.suggestedCpc!=null?`<span class="${i.maxCpc&&i.suggestedCpc>i.maxCpc?'bc-red':'bc-green'}">${num(i.suggestedCpc,2)} Kč</span>`:'—'}</td>
+      <td class="text-end">${i.maxCpc!=null?num(i.maxCpc,2)+' Kč':'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* REVIEWS TAB */
+function renderReviews(r){
+  document.getElementById('rev-badge').textContent=r.reviews_total||0;
+  document.getElementById('rev-summary').innerHTML=`
+    <div class="text-center mb-3">
+      <div class="d-flex justify-content-center gap-4 mb-2">
+        <div class="text-center"><div class="fw-bold text-success fs-3">${num(r.reviews_positive)}</div><div class="text-muted" style="font-size:.7rem"><i class="bi bi-hand-thumbs-up-fill text-success me-1"></i>Spokojený</div></div>
+        <div class="text-center"><div class="fw-bold text-danger fs-3">${num(r.reviews_negative)}</div><div class="text-muted" style="font-size:.7rem"><i class="bi bi-hand-thumbs-down-fill text-danger me-1"></i>Nespokojený</div></div>
+      </div>
+      <div class="text-muted small">z ${num(r.reviews_total)} recenzí</div>
+    </div>`;
+  const revs=r.reviews_list||[];
+  document.getElementById('rev-list').innerHTML=revs.length?revs.map(rv=>{
+    const overall=rv.overall;
+    const icon=overall==='yes'?'<i class="bi bi-hand-thumbs-up-fill text-success"></i>':overall==='yes_but'?'<i class="bi bi-hand-thumbs-up text-warning"></i>':overall==='no'?'<i class="bi bi-hand-thumbs-down-fill text-danger"></i>':'';
+    const dt=rv.createTimestamp;
+    const dtStr=typeof dt==='number'?new Date(dt*1000).toLocaleDateString('cs-CZ'):'';
+    return `<div class="border-bottom pb-2 mb-2">
+      ${icon} <strong class="small">${esc(String(rv.userName||'Zákazník'))}</strong>
+      <span class="text-muted small ms-2">${dtStr}</span>
+      ${rv.positiveComment?`<div class="small mt-1 text-success"><i class="bi bi-plus-circle me-1"></i>${esc(rv.positiveComment)}</div>`:''}
+      ${rv.negativeComment?`<div class="small mt-1 text-danger"><i class="bi bi-dash-circle me-1"></i>${esc(rv.negativeComment)}</div>`:''}
+    </div>`;
+  }).join(''):'<span class="text-muted small">Žádné recenze</span>';
+  const prvs=r.product_reviews_list||[];
+  document.getElementById('prod-rev-list').innerHTML=prvs.length?`
+    <table class="table table-sm tbl mb-0">
+      <thead><tr><th>Produkt</th><th>Hodnocení</th><th>Komentář</th></tr></thead>
+      <tbody>${prvs.map(rv=>`<tr>
+        <td class="fw-semibold" style="max-width:200px">${esc(rv.productName||'')}</td>
+        <td>${rv.ratingStars?`<span class="stars">${stars(rv.ratingStars)}</span>`:'—'}</td>
+        <td class="text-muted">${esc(String(rv.text||'').substring(0,120))}</td>
+      </tr>`).join('')}</tbody>
+    </table>`
+  :'<span class="text-muted small">Žádné produktové recenze</span>';
+}
+
+/* RECOMMENDATIONS TAB */
+function renderRecs(r){
+  document.getElementById('feed-recs').innerHTML=buildRecs(r.feed_recommendations||[]);
+  document.getElementById('sklik-recs').innerHTML=buildRecs(r.sklik_recommendations||[]);
+}
+
+function buildRecs(recs){
+  if(!recs.length)return'<div class="alert alert-info">Žádná doporučení.</div>';
+  const g={critical:[],important:[],tip:[]};
+  recs.forEach(r=>(g[r.priority]||g.tip).push(r));
+  let h='';
+  [['critical','Kritické – vyřešte okamžitě'],['important','Důležité zlepšení'],['tip','Tipy & Best practices']].forEach(([p,lbl])=>{
+    if(!g[p].length)return;
+    const col={critical:'danger',important:'warning',tip:'success'}[p];
+    h+=`<p class="text-${col} fw-semibold mt-3 mb-2 small text-uppercase">${lbl}</p>`;
+    h+=g[p].map(r=>{
+      const uid='x'+Math.random().toString(36).slice(2);
+      const ex=r.example?`<div class="mt-1"><a class="small text-muted text-decoration-none" data-bs-toggle="collapse" href="#${uid}"><i class="bi bi-code-slash me-1"></i>Ukázka</a><div class="collapse" id="${uid}"><pre class="xml">${esc(r.example)}</pre></div></div>`:'';
+      const aff=r.affected>0?`<span class="badge bg-light text-dark border ms-2 small">${num(r.affected)} pol.</span>`:'';
+      const bl={critical:'danger',important:'warning',tip:'success'}[r.priority];
+      const plabel={critical:'Kritické',important:'Důležité',tip:'Tip'}[r.priority]||r.priority;
+      return `<div class="rec ${r.priority}">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+          <div class="fw-semibold">${esc(r.title)}${aff}</div>
+          <span class="badge bg-${bl} flex-shrink-0">${plabel}</span>
+        </div>
+        <div class="text-secondary small mt-1" style="white-space:pre-line">${esc(r.detail)}</div>
+        ${ex}
+      </div>`;
+    }).join('');
+  });
+  return h;
+}
+
+/* API STATUS TAB */
+function renderApiStatus(r){
+  const st=r.endpoint_status||{};
+  document.getElementById('ep-list').innerHTML=Object.entries(st).map(([k,v])=>{
+    const ok=v==='ok'||v.startsWith('ok');
+    return `<div class="d-flex align-items-center gap-2 mb-2 small border-bottom pb-1">
+      <span style="width:8px;height:8px;border-radius:50%;background:${ok?'#198754':'#dc3545'};display:inline-block;flex-shrink:0"></span>
+      <code class="flex-grow-1">${esc(k)}</code>
+      <span class="text-${ok?'success':'danger'}">${ok?esc(v):esc(v.substring(0,60))}</span>
+    </div>`;
+  }).join('')||'<span class="text-muted">Žádné údaje</span>';
+  const ws=r.warnings||[];
+  document.getElementById('warn-list').innerHTML=ws.length
+    ? ws.map(w=>`<div class="mb-1 text-warning-emphasis"><i class="bi bi-exclamation-triangle me-1"></i>${esc(w)}</div>`).join('')
+    : '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Žádná varování</span>';
+  document.getElementById('raw-diag').textContent=JSON.stringify(r.raw_diagnostics||{},null,2);
+}
+
+/* PARAMETRY SPEC */
+function renderParamsAnalysis(r){
+  const pa = r.params_analysis || [];
+  const withIssues = pa.filter(c => c.missingCritical.length > 0 || c.missingImportant.length > 0 || c.unrecognized.length > 0);
+  document.getElementById('params-badge').textContent = withIssues.length || '';
+
+  if(!pa.length){
+    document.getElementById('params-analysis').innerHTML='<span class="text-muted small">Data nedostupná</span>';
+    return;
+  }
+
+  const groupLabel = {'Kritický':'text-danger','Důležitý':'text-warning','Doplňkový':'text-muted'};
+
+  document.getElementById('params-analysis').innerHTML = pa.map(c => {
+    if(!c.specFound) return `<div class="mb-3 p-3 border rounded bg-light">
+      <div class="fw-semibold">${esc(c.category)}</div>
+      <div class="small text-muted">${c.itemCount} položek · Kategorie nenalezena ve spec Zboží.cz</div>
+    </div>`;
+
+    const miss_c = c.missingCritical.map(n=>`<span class="badge bg-danger me-1">${esc(n)}</span>`).join('');
+    const miss_i = c.missingImportant.map(n=>`<span class="badge bg-warning text-dark me-1">${esc(n)}</span>`).join('');
+    const miss_s = c.missingSupplementary.map(n=>`<span class="badge bg-light text-muted border me-1">${esc(n)}</span>`).join('');
+    const unrec = c.unrecognized.map(n=>`<span class="badge bg-info text-dark me-1">${esc(n)}</span>`).join('');
+    const feed_p = c.feedParamNames.map(n=>`<span class="badge bg-success me-1">${esc(n)}</span>`).join('');
+
+    return `<div class="mb-3 p-3 border rounded">
+      <div class="fw-semibold mb-1">${esc(c.category)}
+        <span class="text-muted fw-normal small ms-2">${c.itemCount} položek · ${c.specParamCount} param. ve spec</span>
+      </div>
+      ${miss_c ? `<div class="mb-1 small"><span class="text-danger fw-semibold">Chybí kritické:</span> ${miss_c}</div>` : ''}
+      ${miss_i ? `<div class="mb-1 small"><span class="text-warning fw-semibold">Chybí důležité:</span> ${miss_i}</div>` : ''}
+      ${miss_s ? `<div class="mb-1 small"><span class="text-muted">Chybí doplňkové:</span> ${miss_s}</div>` : ''}
+      ${unrec ? `<div class="mb-1 small"><span class="text-info fw-semibold">Nerozpoznané (ve feedu, ne ve spec):</span> ${unrec}</div>` : ''}
+      ${feed_p ? `<div class="mt-2 small text-muted">Ve feedu: ${feed_p}</div>` : '<div class="mt-1 small text-danger">Žádné parametry ve feedu</div>'}
+    </div>`;
+  }).join('');
+}
+
+/* API EXPLORER */
+const EX_PARAMS={
+  diagnostics:[],
+  items:[{id:'limit',label:'Limit (max 30)',type:'number',def:30},{id:'offset',label:'Offset (cursor)',type:'text',def:''}],
+  items_basic:[{id:'limit',label:'Limit',type:'number',def:100},{id:'offset',label:'Offset (cursor)',type:'text',def:''}],
+  feeds:[],
+  feed_download:[{id:'feed_url',label:'Feed URL',type:'text',def:''}],
+  campaigns:[],
+  stats_item:[{id:'days',label:'Dní',type:'number',def:30}],
+  stats_category:[{id:'days',label:'Dní',type:'number',def:30}],
+  reviews:[{id:'limit',label:'Limit',type:'number',def:100},{id:'days',label:'Dní zpět (max 180)',type:'number',def:30}],
+  product_reviews:[{id:'limit',label:'Limit',type:'number',def:100},{id:'days',label:'Dní zpět (max 180)',type:'number',def:30}],
+  products:[{id:'product_ids',label:'Product IDs (čárkou)',type:'text',def:''}],
+  categories:[{id:'category_ids',label:'Category IDs (čárkou)',type:'text',def:''}],
+  categories_tree:[],
+  manufacturers:[],
+};
+
+function exEndpointChanged(){
+  const ep=document.getElementById('ex-endpoint').value;
+  const ps=EX_PARAMS[ep]||[];
+  document.getElementById('ex-params-wrap').innerHTML=ps.length
+    ? ps.map(p=>`<label class="form-label small fw-semibold mb-1">${esc(p.label)}</label>
+        <input type="${p.type}" class="form-control form-control-sm mb-1" id="ex-p-${p.id}" value="${esc(String(p.def))}" placeholder="${esc(p.label)}">`).join('')
+    : '<span class="text-muted small mt-4 d-block">Bez parametrů</span>';
+}
+exEndpointChanged();
+
+async function exCall(){
+  const ep=document.getElementById('ex-endpoint').value;
+  const key=document.getElementById('api_key').value.trim();
+  const uid=document.getElementById('user_id').value.trim();
+  const pid=document.getElementById('premise_id').value.trim();
+  const errEl=document.getElementById('ex-err');
+  const resEl=document.getElementById('ex-result');
+  const spin=document.getElementById('ex-spinner');
+  errEl.classList.add('d-none'); resEl.style.display='none';
+  if(!key){ errEl.textContent='Vyplňte API klíč nahoře.'; errEl.classList.remove('d-none'); return; }
+  const params={};
+  (EX_PARAMS[ep]||[]).forEach(p=>{
+    const el=document.getElementById('ex-p-'+p.id);
+    if(!el)return;
+    const v=el.value.trim();
+    if(!v)return;
+    if(['product_ids','category_ids'].includes(p.id)){
+      params[p.id]=v.split(',').map(s=>s.trim()).filter(Boolean);
+    } else {
+      params[p.id]=v;
+    }
+  });
+  spin.classList.remove('d-none');
+  try{
+    const r=await fetch('/api/call',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({api_key:key,premise_id:pid,user_id:uid||null,endpoint:ep,params})});
+    const d=await r.json();
+    spin.classList.add('d-none');
+    if(!r.ok){ errEl.textContent=(d.error||'Chyba')+(d.trace?'\n'+d.trace:''); errEl.classList.remove('d-none'); return; }
+    resEl.textContent=JSON.stringify(d,null,2);
+    resEl.style.display='block';
+  }catch(e){ spin.classList.add('d-none'); errEl.textContent='Síťová chyba: '+e.message; errEl.classList.remove('d-none'); }
+}
+
+function exCopy(){
+  const txt=document.getElementById('ex-result').textContent;
+  if(txt) navigator.clipboard.writeText(txt);
+}
+
+/* CSV EXPORT */
+async function exportCSV(type, data){
+  if(!data||!data.length){ alert('Žádná data k exportu'); return; }
+  try{
+    const r=await fetch('/export/csv',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type,data})});
+    if(!r.ok){ alert('Chyba exportu'); return; }
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=`sklik_${type}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  }catch(e){ alert('Chyba: '+e.message); }
+}
+</script>
+</body>
+</html>
