@@ -253,8 +253,7 @@
             </div>
             <div class="btn-group btn-group-sm" id="ifilter">
               <button class="btn btn-primary active" onclick="setIFilter('all',this)">Vše</button>
-              <button class="btn btn-outline-primary" onclick="setIFilter('paired',this)">Spárované</button>
-              <button class="btn btn-outline-primary" onclick="setIFilter('unpaired',this)">Nespárované</button>
+
               <button class="btn btn-outline-warning" onclick="setIFilter('expensive',this)">Dražší než min</button>
               <button class="btn btn-outline-danger" onclick="setIFilter('noparam',this)">Bez parametrů</button>
             </div>
@@ -271,7 +270,6 @@
                 <th onclick="sortI('minPriceCompetitors')" class="text-end">Min. u ostatních ↕</th>
                 <th onclick="sortI('priceVsMin')" class="text-end">Poměr ↕</th>
                 <th onclick="sortI('shopCount')" class="text-end">Eshopů ↕</th>
-                <th>Spárováno</th>
                 <th onclick="sortI('topPosition')" class="text-end">Pozice ↕</th>
                 <th onclick="sortI('suggestedCpc')" class="text-end">Dopor. CPC ↕</th>
                 <th onclick="sortI('maxCpc')" class="text-end">Max CPC ↕</th>
@@ -567,7 +565,6 @@ function renderKPIs(r){
   const cs=r.competition_summary||{};
   const tiles=[
     {v:num(r.items_total),    l:'Položek celkem',   cls:'kpi-primary',  i:'box-seam'},
-    {v:pct(r.items_paired,r.items_total), l:'Spárováno', cls: r.items_paired/r.items_total>=.85?'kpi-success':'kpi-warning', i:'link-45deg'},
     {v:num(r.items_errors),   l:'Chyby ve feedu',   cls:r.items_errors>0?'kpi-danger':'kpi-success', i:'x-circle'},
     {v:num(r.items_no_ean),   l:'Bez EAN',          cls:r.items_no_ean>0?'kpi-warning':'kpi-success', i:'upc-scan'},
     {v:num(r.items_no_params),l:'Bez parametrů',    cls:r.items_no_params>0?'kpi-warning':'kpi-success', i:'sliders'},
@@ -809,7 +806,7 @@ function renderCategories(r){
   document.getElementById('cat-table').innerHTML=`
     <table class="table table-sm tbl mb-0">
       <thead><tr>
-        <th>Kategorie</th><th class="text-end">Pol.</th><th class="text-end">Spárováno</th>
+        <th>Kategorie</th><th class="text-end">Pol.</th>
         <th class="text-end">Prům. eshopů</th><th class="text-end">Cena vs min</th>
         <th class="text-end">Kliknutí</th><th class="text-end">CTR</th>
         <th class="text-end">Náklady</th><th class="text-end">Konv.</th>
@@ -818,7 +815,7 @@ function renderCategories(r){
       <tbody>${cats.map(c=>`<tr>
         <td class="fw-semibold" style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.category)}">${esc(c.category||'—')}</td>
         <td class="text-end">${num(c.items)}</td>
-        <td class="text-end">${c.pairedPct}%</td>
+
         <td class="text-end">${c.avgShopCount!=null?c.avgShopCount.toFixed(1):'—'}</td>
         <td class="text-end">${priceRatioBadge(c.avgPriceVsMin)}</td>
         <td class="text-end fw-semibold">${c.clicks>0?num(c.clicks):'—'}</td>
@@ -847,8 +844,6 @@ function setIFilter(f,btn){ _iFilter=f; _iPage=0; document.querySelectorAll('#if
 function filterItems(){
   const q=document.getElementById('isearch').value.toLowerCase();
   _filtI=_allI.filter(i=>{
-    if(_iFilter==='paired'   && !i.paired)return false;
-    if(_iFilter==='unpaired' && i.paired)return false;
     if(_iFilter==='expensive'&& !(i.priceVsMin>1.05))return false;
     if(_iFilter==='noparam'  && i.hasParams)return false;
     if(q&&!((i.name||'').toLowerCase().includes(q)||(i.id||'').includes(q)||(i.category||'').toLowerCase().includes(q)))return false;
@@ -885,7 +880,7 @@ function renderIPage(){
       <td class="text-end">${i.minPriceCompetitors!=null?num(i.minPriceCompetitors,0)+' Kč':i.minPrice!=null?num(i.minPrice,0)+' Kč':'—'}</td>
       <td class="text-end">${priceRatioBadge(i.priceVsMin)}</td>
       <td class="text-end">${i.shopCount!=null?`<span class="${i.shopCount>15?'bc-red':i.shopCount>8?'bc-orange':'bc-green'}">${i.shopCount}</span>`:'—'}</td>
-      <td>${i.paired?'<span class="bp">✓ Ano</span>':'<span class="bu">✗ Ne</span>'}</td>
+
       <td class="text-end">${i.topPosition!=null?(i.topPosition===0?'—':`<span class="bc-blue">${i.topPosition}</span>`):'—'}</td>
       <td class="text-end">${i.suggestedCpc!=null?`<span class="${i.maxCpc&&i.suggestedCpc>i.maxCpc?'bc-red':'bc-green'}">${num(i.suggestedCpc,2)} Kč</span>`:'—'}</td>
       <td class="text-end">${i.maxCpc!=null?num(i.maxCpc,2)+' Kč':'—'}</td>
