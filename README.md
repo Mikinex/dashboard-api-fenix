@@ -20,15 +20,6 @@ Webový dashboard pro analýzu výkonu e-shopu na Zboží.cz prostřednictvím F
 - Bootstrap 5 + Chart.js
 - Nasazení: Render.com
 
-## Spuštění lokálně
-
-```bash
-pip install -r requirements.txt
-python3 app.py
-```
-
-Otevři http://localhost:5000, zadej Fénix token, User ID a Premise ID.
-
 ## Nasazení na Render
 
 Projekt obsahuje `render.yaml`. Stačí propojit GitHub repo a Render vše nakonfiguruje automaticky.
