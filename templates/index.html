@@ -11,8 +11,68 @@
       --sklik-dark: #1a1f2e;
       --sklik-blue: #0066cc;
       --sklik-green: #00a651;
+      --bg-body: #f0f2f5;
+      --bg-card: #fff;
+      --bg-input: #fff;
+      --text-main: #1a1a2e;
+      --text-muted: #6c757d;
+      --border-color: #e9ecef;
+      --table-hover: #f8f9fa;
+      --code-bg: #1e2030;
     }
-    body { background:#f0f2f5; font-size:.88rem; color:#1a1a2e; }
+    [data-theme="dark"] {
+      --bg-body: #0f1119;
+      --bg-card: #1a1d2e;
+      --bg-input: #252840;
+      --text-main: #c8cdd8;
+      --text-muted: #8892a8;
+      --border-color: #2a2e42;
+      --table-hover: #22253a;
+      --code-bg: #0a0c14;
+    }
+    body { background:var(--bg-body); font-size:.88rem; color:var(--text-main); transition:background .3s,color .3s; }
+    [data-theme="dark"] .card { background:var(--bg-card)!important; border-color:var(--border-color)!important; }
+    [data-theme="dark"] .form-control,[data-theme="dark"] .form-select { background:var(--bg-input); color:var(--text-main); border-color:var(--border-color); }
+    [data-theme="dark"] .form-control:focus,[data-theme="dark"] .form-select:focus { background:var(--bg-input); color:var(--text-main); }
+    [data-theme="dark"] .table { color:var(--text-main); }
+    [data-theme="dark"] .tbl th { color:var(--text-muted); border-color:var(--border-color); }
+    [data-theme="dark"] .tbl td { border-color:var(--border-color); }
+    [data-theme="dark"] .tbl tbody tr:hover { background:var(--table-hover); }
+    [data-theme="dark"] .text-muted { color:var(--text-muted)!important; }
+    [data-theme="dark"] .text-dark { color:var(--text-main)!important; }
+    [data-theme="dark"] .bg-light { background:var(--bg-input)!important; }
+    [data-theme="dark"] .border { border-color:var(--border-color)!important; }
+    [data-theme="dark"] .border-bottom { border-color:var(--border-color)!important; }
+    [data-theme="dark"] .alert-info { background:#1a2744; color:#6ea8fe; border-color:#2a3f5f; }
+    [data-theme="dark"] .alert-danger { background:#2c1a1f; color:#ea868f; border-color:#3d2329; }
+    [data-theme="dark"] .nav-tabs .nav-link { color:var(--text-muted); }
+    [data-theme="dark"] .nav-tabs .nav-link.active { color:#5b9cff; border-bottom-color:#5b9cff; }
+    [data-theme="dark"] .nav-tabs { border-color:var(--border-color); }
+    [data-theme="dark"] .rec { background:var(--bg-card); }
+    [data-theme="dark"] #ov { background:rgba(15,17,25,.95); }
+    [data-theme="dark"] .kpi-neutral { background:var(--bg-card); border-color:var(--border-color); }
+    [data-theme="dark"] .input-group-text { background:var(--bg-input); color:var(--text-muted); border-color:var(--border-color); }
+    .theme-toggle { background:none; border:1px solid #ffffff33; color:#8899bb; border-radius:6px; padding:4px 10px; font-size:.82rem; cursor:pointer; transition:all .2s; }
+    .theme-toggle:hover { color:#fff; border-color:#ffffff55; }
+
+    /* PDF Export – print styles */
+    @media print {
+      body { background:#fff!important; color:#000!important; font-size:10pt; }
+      .topbar,.theme-toggle,#login-card,.nav-tabs,#t-explorer,#t-api,#ai-btn,#ai-hint,.btn,
+      .itbl th[onclick],.spin-prog,#ov { display:none!important; }
+      .tab-pane { display:block!important; opacity:1!important; page-break-inside:avoid; margin-bottom:20pt; }
+      .card { box-shadow:none!important; border:1px solid #ddd!important; break-inside:avoid; }
+      .d-none { display:block!important; }
+      #results { display:block!important; }
+      #results .d-none { display:block!important; }
+      .chart-wrap { height:200px!important; }
+      h2,h3,.section-title { color:#000!important; }
+      .kpi { border:1px solid #ccc!important; background:#f8f8f8!important; }
+      @page { margin:15mm; }
+    }
+    .pdf-bar { display:none; }
+    #results:not(.d-none) ~ .pdf-bar, .pdf-bar.show { display:block; }
+
     .topbar { background:var(--sklik-dark); padding:10px 20px; display:flex; align-items:center; gap:16px; }
     .topbar .brand { color:#fff; font-weight:700; font-size:1rem; letter-spacing:-.3px; }
     .topbar .sub { color:#8899bb; font-size:.78rem; margin-left:auto; }
@@ -66,6 +126,16 @@
     .iname { max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
     .chart-wrap { position:relative; height:260px; }
+
+    /* AI markdown output */
+    .ai-markdown h2 { font-size:1.1rem; font-weight:700; margin-top:1.2em; margin-bottom:.4em; color:#0066cc; border-bottom:1px solid #e9ecef; padding-bottom:4px; }
+    .ai-markdown h3 { font-size:.95rem; font-weight:700; margin-top:1em; margin-bottom:.3em; }
+    .ai-markdown ul { padding-left:1.2em; }
+    .ai-markdown li { margin-bottom:.3em; }
+    .ai-markdown strong { color:#1a1a2e; }
+    .ai-markdown p { margin-bottom:.6em; }
+    .ai-cursor::after { content:'▋'; animation:blink 1s infinite; color:#0066cc; }
+    @keyframes blink { 0%,50%{opacity:1} 51%,100%{opacity:0} }
   </style>
 </head>
 <body>
@@ -82,6 +152,12 @@
 <div class="topbar">
   <span class="brand"><i class="bi bi-cart3 me-2"></i>Fénix API Dashboard</span>
   <span class="sub" id="nav-sub"></span>
+  <button class="theme-toggle d-none" id="pdf-btn" onclick="exportPDF()" title="Exportovat jako PDF">
+    <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+  </button>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Přepnout tmavý/světlý režim">
+    <i class="bi bi-moon-stars" id="theme-icon"></i>
+  </button>
 </div>
 
 <div class="container-fluid px-3 py-3" style="max-width:1600px">
@@ -110,6 +186,16 @@
         <div class="col-auto">
           <button class="btn btn-primary btn-sm px-4" onclick="runAnalysis()"><i class="bi bi-search me-1"></i>Načíst</button>
         </div>
+        <div class="col-auto">
+          <div class="dropdown">
+            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" id="profiles-btn" title="Uložené profily">
+              <i class="bi bi-bookmark me-1"></i>Profily
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" id="profiles-menu" style="min-width:260px">
+              <li><span class="dropdown-item-text text-muted small">Žádné uložené profily</span></li>
+            </ul>
+          </div>
+        </div>
         <div class="col-12 col-lg-auto ms-auto">
           <small class="text-muted"><i class="bi bi-shield-lock me-1"></i>Údaje se neukládají, vše probíhá lokálně.</small>
         </div>
@@ -132,7 +218,10 @@
       <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-items">Položky <span id="items-badge" class="badge bg-secondary ms-1 small"></span></button></li>
       <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-reviews">Recenze <span id="rev-badge" class="badge bg-secondary ms-1 small"></span></button></li>
       <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-params">Parametry <span id="params-badge" class="badge bg-secondary ms-1 small"></span></button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-feed-val"><i class="bi bi-check2-square me-1"></i>Feed Validátor</button></li>
       <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-recs">Doporučení</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-history"><i class="bi bi-clock-history me-1"></i>Historie</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-ai"><i class="bi bi-stars me-1"></i>AI Analýza</button></li>
       <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-api">API stav</button></li>
       <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-explorer"><i class="bi bi-terminal me-1"></i>API Explorer</button></li>
     </ul>
@@ -206,9 +295,22 @@
                 <div class="btn-group btn-group-sm ms-auto" id="chart-btns">
                   <button class="btn btn-primary btn-sm active" onclick="setChart('vc',this)">Zobrazení & Kliknutí</button>
                   <button class="btn btn-outline-secondary btn-sm" onclick="setChart('cc',this)">Náklady & Konverze</button>
+                  <button class="btn btn-outline-secondary btn-sm" onclick="setChart('pno',this)">PNO & CPC trend</button>
                 </div>
               </div>
               <div class="chart-wrap"><canvas id="daily-chart"></canvas></div>
+            </div></div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card h-100"><div class="card-body">
+              <div class="section-title">Cena vs. pozice (scatter)</div>
+              <div class="chart-wrap" style="height:280px"><canvas id="scatter-chart"></canvas></div>
+            </div></div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card h-100"><div class="card-body">
+              <div class="section-title">Rozložení cen vs. konkurence</div>
+              <div class="chart-wrap" style="height:280px"><canvas id="price-dist-chart"></canvas></div>
             </div></div>
           </div>
           <div class="col-lg-12">
@@ -317,6 +419,31 @@
         </div></div>
       </div>
 
+      <!-- FEED VALIDÁTOR -->
+      <div class="tab-pane fade" id="t-feed-val">
+        <div class="row g-3">
+          <div class="col-lg-6">
+            <div class="card h-100"><div class="card-body">
+              <div class="section-title">Pokrytí polí ve feedu</div>
+              <div class="chart-wrap" style="height:280px"><canvas id="feed-coverage-chart"></canvas></div>
+            </div></div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card h-100"><div class="card-body">
+              <div class="section-title">Skóre kvality feedu</div>
+              <div id="feed-score" class="text-center py-3"></div>
+              <div id="feed-checklist"></div>
+            </div></div>
+          </div>
+          <div class="col-12">
+            <div class="card"><div class="card-body">
+              <div class="section-title"><i class="bi bi-lightbulb me-1 text-warning"></i>Doporučení pro Extra Message</div>
+              <div id="feed-extra-msg"></div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+
       <!-- DOPORUČENÍ -->
       <div class="tab-pane fade" id="t-recs">
         <ul class="nav nav-pills mb-3">
@@ -326,6 +453,61 @@
         <div class="tab-content">
           <div class="tab-pane fade show active" id="rp-feed"><div id="feed-recs"></div></div>
           <div class="tab-pane fade" id="rp-sklik"><div id="sklik-recs"></div></div>
+        </div>
+      </div>
+
+      <!-- HISTORIE -->
+      <div class="tab-pane fade" id="t-history">
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="card"><div class="card-body">
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="section-title mb-0"><i class="bi bi-clock-history me-1"></i>Porovnání s minulou analýzou</span>
+                <button class="btn btn-outline-primary btn-sm" onclick="loadHistory()"><i class="bi bi-arrow-clockwise me-1"></i>Načíst historii</button>
+              </div>
+              <div id="history-comparison"></div>
+            </div></div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card h-100"><div class="card-body">
+              <div class="section-title">Vývoj KPI v čase</div>
+              <div class="chart-wrap" style="height:300px"><canvas id="history-chart"></canvas></div>
+            </div></div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card h-100"><div class="card-body">
+              <div class="section-title"><i class="bi bi-arrow-left-right me-1"></i>Změny cen konkurence</div>
+              <div id="price-movers"></div>
+            </div></div>
+          </div>
+          <div class="col-12">
+            <div class="card"><div class="card-body">
+              <div class="section-title">Všechny snímky</div>
+              <div id="history-table"></div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI ANALÝZA -->
+      <div class="tab-pane fade" id="t-ai">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <span class="section-title mb-0"><i class="bi bi-stars me-1"></i>AI Doporučení od Claude</span>
+              <button class="btn btn-primary btn-sm px-4" id="ai-btn" onclick="runAI()">
+                <i class="bi bi-magic me-1"></i>Generovat doporučení
+              </button>
+              <div class="spinner-border spinner-border-sm text-primary d-none" id="ai-spin"></div>
+            </div>
+            <div class="text-muted small mb-3" id="ai-hint">
+              Claude analyzuje vaše data a vygeneruje personalizovaná doporučení pro zlepšení výkonu na Zboží.cz.
+            </div>
+            <div id="ai-error" class="alert alert-danger d-none small"></div>
+            <div id="ai-output" class="d-none">
+              <div id="ai-text" class="ai-markdown" style="line-height:1.7;font-size:.9rem"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -436,6 +618,69 @@ function ctrBadge(ctr) {
   if (ctr >= 0.5) return `<span class="bc-orange">${num(ctr,2)} %</span>`;
   return `<span class="bc-red">${num(ctr,2)} %</span>`;
 }
+
+/* PROFILY – multi-provozovna */
+function _getProfiles(){ return JSON.parse(localStorage.getItem('fenix_profiles')||'[]'); }
+function _saveProfiles(p){ localStorage.setItem('fenix_profiles',JSON.stringify(p)); _renderProfiles(); }
+
+function saveProfile(){
+  const uid=document.getElementById('user_id').value.trim();
+  const pid=document.getElementById('premise_id').value.trim();
+  if(!pid){alert('Vyplňte Premise ID.');return;}
+  const name=prompt('Pojmenujte profil (např. "Hlavní e-shop"):',pid);
+  if(!name)return;
+  const profiles=_getProfiles();
+  const existing=profiles.findIndex(p=>p.pid===pid&&p.uid===uid);
+  if(existing>=0) profiles[existing].name=name;
+  else profiles.push({name,uid,pid});
+  _saveProfiles(profiles);
+}
+
+function loadProfile(idx){
+  const profiles=_getProfiles();
+  if(!profiles[idx])return;
+  document.getElementById('user_id').value=profiles[idx].uid||'';
+  document.getElementById('premise_id').value=profiles[idx].pid||'';
+}
+
+function deleteProfile(idx,e){
+  e.stopPropagation();
+  const profiles=_getProfiles();
+  if(!confirm(`Smazat profil "${profiles[idx]?.name}"?`))return;
+  profiles.splice(idx,1);
+  _saveProfiles(profiles);
+}
+
+function _renderProfiles(){
+  const profiles=_getProfiles();
+  const menu=document.getElementById('profiles-menu');
+  if(!profiles.length){
+    menu.innerHTML='<li><span class="dropdown-item-text text-muted small">Žádné uložené profily</span></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item small" href="#" onclick="saveProfile();return false"><i class="bi bi-plus-circle me-1"></i>Uložit aktuální</a></li>';
+    return;
+  }
+  menu.innerHTML=profiles.map((p,i)=>`<li><a class="dropdown-item small d-flex align-items-center" href="#" onclick="loadProfile(${i});return false">
+    <span class="flex-grow-1"><i class="bi bi-shop me-1"></i>${esc(p.name)}<br><span class="text-muted" style="font-size:.72rem">UID: ${esc(p.uid||'—')} · PID: ${esc(p.pid)}</span></span>
+    <button class="btn btn-sm text-danger p-0 ms-2" onclick="deleteProfile(${i},event)" title="Smazat"><i class="bi bi-x"></i></button>
+  </a></li>`).join('')
+    +'<li><hr class="dropdown-divider"></li><li><a class="dropdown-item small" href="#" onclick="saveProfile();return false"><i class="bi bi-plus-circle me-1"></i>Uložit aktuální</a></li>';
+}
+document.addEventListener('DOMContentLoaded',_renderProfiles);
+
+/* DARK MODE */
+function toggleTheme(){
+  const html=document.documentElement;
+  const isDark=html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme', isDark?'light':'dark');
+  localStorage.setItem('fenix_theme', isDark?'light':'dark');
+  document.getElementById('theme-icon').className=isDark?'bi bi-moon-stars':'bi bi-sun';
+}
+(function(){
+  const saved=localStorage.getItem('fenix_theme');
+  if(saved==='dark'){
+    document.documentElement.setAttribute('data-theme','dark');
+    setTimeout(()=>{const i=document.getElementById('theme-icon');if(i)i.className='bi bi-sun';},0);
+  }
+})();
 
 /* SPINNER */
 function startSpin(){
@@ -556,8 +801,10 @@ function renderAll(r){
   renderReviews(r);
   renderRecs(r);
   renderParamsAnalysis(r);
+  renderFeedValidator(r);
   renderApiStatus(r);
   document.getElementById('nav-sub').textContent=`Provozovna ${r.shop_id} · ${r.generated_at}`;
+  document.getElementById('pdf-btn').classList.remove('d-none');
 }
 
 /* KPI ROW */
@@ -736,6 +983,8 @@ function renderStats(r){
       ${kd.map(([l,i,v])=>`<div class="col"><div class="fw-bold">${v}</div><div class="text-muted" style="font-size:.68rem;text-transform:uppercase"><i class="bi bi-${i} me-1"></i>${l}</div></div>`).join('')}
     </div></div></div>`;
   drawDailyChart();
+  renderScatterChart(r.raw_items||[]);
+  renderPriceDistChart(r.raw_items||[]);
   document.getElementById('perf-detail').innerHTML=`
     <div class="row g-2">
       ${[
@@ -769,18 +1018,85 @@ function drawDailyChart(){
     if(typeof v==='number')return new Date(v*1000).toLocaleDateString('cs-CZ',{day:'numeric',month:'short'});
     return String(v).length>=10?String(v).substring(5,10).replace('-','.'):v;
   });
-  const ds=_chartMode==='vc'?[
-    {label:'Zobrazení',data:_daily.map(d=>d.views||0),borderColor:'#0066cc',backgroundColor:'#0066cc18',fill:true,tension:.35,pointRadius:2},
-    {label:'Kliknutí', data:_daily.map(d=>d.clicks||0),borderColor:'#fd7e14',backgroundColor:'#fd7e1418',fill:true,tension:.35,yAxisID:'y2',pointRadius:2},
-  ]:[
-    {label:'Náklady (Kč)',data:_daily.map(d=>d.cost||0),borderColor:'#dc3545',backgroundColor:'#dc354518',fill:true,tension:.35,pointRadius:2},
-    {label:'Konverze',  data:_daily.map(d=>d.conversions||0),borderColor:'#198754',backgroundColor:'#19875418',fill:true,tension:.35,yAxisID:'y2',pointRadius:2},
-  ];
+  let ds;
+  if(_chartMode==='vc'){
+    ds=[
+      {label:'Zobrazení',data:_daily.map(d=>d.views||0),borderColor:'#0066cc',backgroundColor:'#0066cc18',fill:true,tension:.35,pointRadius:2},
+      {label:'Kliknutí', data:_daily.map(d=>d.clicks||0),borderColor:'#fd7e14',backgroundColor:'#fd7e1418',fill:true,tension:.35,yAxisID:'y2',pointRadius:2},
+    ];
+  } else if(_chartMode==='pno'){
+    ds=[
+      {label:'PNO %',data:_daily.map(d=>{const cv=d.conversionValue||d.conv_value||0;return cv>0?((d.cost||0)/cv*100):null;}),borderColor:'#dc3545',backgroundColor:'#dc354518',fill:true,tension:.35,pointRadius:2,spanGaps:true},
+      {label:'Prům. CPC (Kč)',data:_daily.map(d=>{const cl=d.clicks||0;return cl>0?(d.cost||0)/cl:null;}),borderColor:'#0066cc',backgroundColor:'#0066cc18',fill:false,tension:.35,yAxisID:'y2',pointRadius:2,spanGaps:true},
+    ];
+  } else {
+    ds=[
+      {label:'Náklady (Kč)',data:_daily.map(d=>d.cost||0),borderColor:'#dc3545',backgroundColor:'#dc354518',fill:true,tension:.35,pointRadius:2},
+      {label:'Konverze',  data:_daily.map(d=>d.conversions||0),borderColor:'#198754',backgroundColor:'#19875418',fill:true,tension:.35,yAxisID:'y2',pointRadius:2},
+    ];
+  }
   if(_chart)_chart.destroy();
   _chart=new Chart(document.getElementById('daily-chart'),{type:'line',data:{labels,datasets:ds},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
       plugins:{legend:{position:'top',labels:{boxWidth:12,font:{size:11}}}},
       scales:{y:{beginAtZero:true,grid:{color:'#0001'}},y2:{beginAtZero:true,position:'right',grid:{drawOnChartArea:false}}}}});
+}
+
+/* SCATTER: Cena vs Pozice */
+let _scatterChart=null;
+function renderScatterChart(items){
+  const ctx=document.getElementById('scatter-chart');
+  if(!ctx)return;
+  const pts=items.filter(i=>i.price!=null&&i.topPosition!=null&&i.topPosition>0)
+    .map(i=>({x:i.price,y:i.topPosition,name:i.name}));
+  if(!pts.length){ctx.parentElement.innerHTML='<div class="text-muted text-center py-4 small">Nedostatek dat (chybí pozice)</div>';return;}
+  if(_scatterChart)_scatterChart.destroy();
+  _scatterChart=new Chart(ctx,{type:'scatter',
+    data:{datasets:[{
+      label:'Položky',
+      data:pts,
+      backgroundColor:'#0066cc44',
+      borderColor:'#0066cc',
+      pointRadius:4,pointHoverRadius:7
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{
+        label:c=>`${c.raw.name?.substring(0,40)} — ${num(c.raw.x)} Kč, pozice ${c.raw.y}`
+      }}},
+      scales:{x:{title:{display:true,text:'Cena (Kč)',font:{size:11}},grid:{color:'#0001'}},
+              y:{title:{display:true,text:'Pozice (nižší = lepší)',font:{size:11}},reverse:true,grid:{color:'#0001'}}}}
+  });
+}
+
+/* HISTOGRAM: Rozložení cena vs min konkurence */
+let _priceDistChart=null;
+function renderPriceDistChart(items){
+  const ctx=document.getElementById('price-dist-chart');
+  if(!ctx)return;
+  const ratios=items.filter(i=>i.priceVsMin!=null).map(i=>i.priceVsMin);
+  if(ratios.length<3){ctx.parentElement.innerHTML='<div class="text-muted text-center py-4 small">Nedostatek dat o konkurenčních cenách</div>';return;}
+  // Buckets
+  const buckets=[
+    {label:'Nejlevnější',min:0,max:0.95,color:'#198754'},
+    {label:'±5%',min:0.95,max:1.05,color:'#0066cc'},
+    {label:'+5–15%',min:1.05,max:1.15,color:'#fd7e14'},
+    {label:'+15–30%',min:1.15,max:1.30,color:'#dc3545'},
+    {label:'+30%+',min:1.30,max:99,color:'#8b0000'},
+  ];
+  const counts=buckets.map(b=>ratios.filter(r=>r>=b.min&&r<b.max).length);
+  if(_priceDistChart)_priceDistChart.destroy();
+  _priceDistChart=new Chart(ctx,{type:'bar',
+    data:{labels:buckets.map(b=>b.label),datasets:[{
+      data:counts,
+      backgroundColor:buckets.map(b=>b.color+'99'),
+      borderColor:buckets.map(b=>b.color),
+      borderWidth:1
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{y:{beginAtZero:true,title:{display:true,text:'Počet položek',font:{size:11}},grid:{color:'#0001'}},
+              x:{grid:{display:false}}}}
+  });
 }
 
 /* CATEGORIES TAB */
@@ -1015,6 +1331,225 @@ function renderParamsAnalysis(r){
   }).join('');
 }
 
+/* HISTORIE */
+let _historyChart=null;
+
+async function loadHistory(){
+  const pid=document.getElementById('premise_id').value.trim();
+  if(!pid){alert('Vyplňte Premise ID.');return;}
+
+  // Načteme vše paralelně
+  const [snapRes, compRes, moversRes] = await Promise.all([
+    fetch('/history/snapshots',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({premise_id:pid})}),
+    fetch('/history/comparison',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({premise_id:pid})}),
+    fetch('/history/price-movers',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({premise_id:pid})}),
+  ]);
+
+  // Snímky
+  const snapshots=await snapRes.json();
+  if(Array.isArray(snapshots)&&snapshots.length){
+    renderHistoryTable(snapshots);
+    renderHistoryChart(snapshots);
+  } else {
+    document.getElementById('history-table').innerHTML='<span class="text-muted small">Zatím žádné historické snímky. Spusťte analýzu pro uložení prvního snímku.</span>';
+  }
+
+  // Porovnání
+  if(compRes.ok){
+    const comp=await compRes.json();
+    renderComparison(comp);
+  } else {
+    document.getElementById('history-comparison').innerHTML='<div class="alert alert-info small mb-0">Potřeba min. 2 analýzy pro porovnání. Spusťte analýzu znovu za pár dní.</div>';
+  }
+
+  // Cenové změny
+  const movers=await moversRes.json();
+  if(Array.isArray(movers)&&movers.length){
+    renderPriceMovers(movers);
+  } else {
+    document.getElementById('price-movers').innerHTML='<span class="text-muted small">Zatím žádné cenové změny (potřeba min. 2 analýzy).</span>';
+  }
+}
+
+function renderComparison(comp){
+  const ch=comp.changes||{};
+  const rows=[
+    ['Položky celkem','items_total','',false],
+    ['Chyby ve feedu','items_errors','',true],
+    ['Zobrazení','perf_views','',false],
+    ['Kliknutí','perf_clicks','',false],
+    ['Náklady','perf_cost',' Kč',true],
+    ['Konverze','perf_conversions','',false],
+    ['CTR','perf_ctr','%',false],
+    ['PNO','perf_pno','%',true],
+    ['Prům. CPC','perf_avg_cpc',' Kč',true],
+    ['Dražší než konkurence','items_price_worse','',true],
+  ];
+  document.getElementById('history-comparison').innerHTML=`
+    <div class="small text-muted mb-2">Porovnání: ${esc(comp.current_date)} vs ${esc(comp.previous_date)}</div>
+    <div class="table-responsive"><table class="table table-sm tbl mb-0">
+      <thead><tr><th>Metrika</th><th class="text-end">Aktuální</th><th class="text-end">Předchozí</th><th class="text-end">Změna</th></tr></thead>
+      <tbody>${rows.map(([label,key,suffix,lowerBetter])=>{
+        const c=ch[key];
+        if(!c)return'';
+        const diff=c.diff;
+        const isGood=lowerBetter?(diff<=0):(diff>=0);
+        const color=diff===0?'text-muted':isGood?'text-success':'text-danger';
+        const arrow=diff>0?'<i class="bi bi-arrow-up-short"></i>':diff<0?'<i class="bi bi-arrow-down-short"></i>':'';
+        return `<tr>
+          <td>${label}</td>
+          <td class="text-end fw-semibold">${num(c.current,key.includes('cpc')||key.includes('pno')||key.includes('ctr')?2:0)}${suffix}</td>
+          <td class="text-end text-muted">${num(c.previous,key.includes('cpc')||key.includes('pno')||key.includes('ctr')?2:0)}${suffix}</td>
+          <td class="text-end ${color} fw-semibold">${arrow}${diff>0?'+':''}${num(diff,1)}${c.pct!=null?' ('+c.pct+'%)':''}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+}
+
+function renderHistoryChart(snapshots){
+  const ctx=document.getElementById('history-chart');
+  if(!ctx)return;
+  const sorted=[...snapshots].reverse();
+  const labels=sorted.map(s=>{
+    const d=s.created_at||'';
+    return d.length>=10?d.substring(5,16).replace('T',' '):'?';
+  });
+  if(_historyChart)_historyChart.destroy();
+  _historyChart=new Chart(ctx,{type:'line',
+    data:{labels,datasets:[
+      {label:'Kliknutí',data:sorted.map(s=>s.perf_clicks||0),borderColor:'#0066cc',tension:.3,pointRadius:4,fill:false},
+      {label:'Konverze',data:sorted.map(s=>s.perf_conversions||0),borderColor:'#198754',tension:.3,pointRadius:4,fill:false,yAxisID:'y2'},
+      {label:'PNO %',data:sorted.map(s=>s.perf_pno||0),borderColor:'#dc3545',tension:.3,pointRadius:4,fill:false,borderDash:[5,3]},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'top',labels:{boxWidth:12,font:{size:11}}}},
+      scales:{y:{beginAtZero:true,grid:{color:'#0001'}},y2:{beginAtZero:true,position:'right',grid:{drawOnChartArea:false}}}}
+  });
+}
+
+function renderHistoryTable(snapshots){
+  document.getElementById('history-table').innerHTML=`
+    <div class="table-responsive"><table class="table table-sm tbl mb-0">
+      <thead><tr>
+        <th>Datum</th><th class="text-end">Položky</th><th class="text-end">Chyby</th>
+        <th class="text-end">Zobr.</th><th class="text-end">Kliknutí</th><th class="text-end">Náklady</th>
+        <th class="text-end">Konv.</th><th class="text-end">PNO</th><th class="text-end">CTR</th>
+      </tr></thead>
+      <tbody>${snapshots.map(s=>`<tr>
+        <td class="text-muted small">${esc(s.created_at||'?')}</td>
+        <td class="text-end">${num(s.items_total)}</td>
+        <td class="text-end">${s.items_errors>0?'<span class="bc-red">'+num(s.items_errors)+'</span>':num(s.items_errors)}</td>
+        <td class="text-end">${num(s.perf_views)}</td>
+        <td class="text-end">${num(s.perf_clicks)}</td>
+        <td class="text-end">${num(s.perf_cost,0)} Kč</td>
+        <td class="text-end">${num(s.perf_conversions)}</td>
+        <td class="text-end">${s.perf_pno>0?s.perf_pno.toFixed(1)+'%':'—'}</td>
+        <td class="text-end">${s.perf_ctr?s.perf_ctr.toFixed(2)+'%':'—'}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
+function renderPriceMovers(movers){
+  document.getElementById('price-movers').innerHTML=`
+    <div class="table-responsive" style="max-height:350px;overflow-y:auto"><table class="table table-sm tbl mb-0">
+      <thead><tr><th>Produkt</th><th class="text-end">Vaše cena</th><th class="text-end">Min. teď</th><th class="text-end">Min. předtím</th><th class="text-end">Změna</th></tr></thead>
+      <tbody>${movers.map(m=>{
+        const ch=m.min_price_change_pct;
+        const color=ch>0?'text-danger':ch<0?'text-success':'text-muted';
+        return `<tr>
+          <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(m.item_name)}">${esc((m.item_name||'').substring(0,40))}</td>
+          <td class="text-end">${num(m.current_price,0)} Kč</td>
+          <td class="text-end fw-semibold">${m.current_min!=null?num(m.current_min,0)+' Kč':'—'}</td>
+          <td class="text-end text-muted">${m.previous_min!=null?num(m.previous_min,0)+' Kč':'—'}</td>
+          <td class="text-end ${color} fw-semibold">${ch!=null?(ch>0?'+':'')+ch+'%':'—'}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+}
+
+/* FEED VALIDÁTOR */
+let _feedCoverageChart=null;
+function renderFeedValidator(r){
+  const fq=r.feed_quality||{};
+  const has=fq.has||{};
+  const total=fq.total||0;
+
+  if(!total){
+    document.getElementById('feed-score').innerHTML='<span class="text-muted">Feed data nedostupná</span>';
+    document.getElementById('feed-checklist').innerHTML='';
+    document.getElementById('feed-extra-msg').innerHTML='<span class="text-muted small">Nedostupné</span>';
+    return;
+  }
+
+  // Coverage chart
+  const ctx=document.getElementById('feed-coverage-chart');
+  const fields=[
+    {key:'price',label:'Cena',critical:true},
+    {key:'imgUrl',label:'Obrázek',critical:true},
+    {key:'categoryText',label:'Kategorie',critical:true},
+    {key:'deliveryDate',label:'Dostupnost',critical:true},
+    {key:'ean',label:'EAN',critical:false},
+    {key:'manufacturer',label:'Výrobce',critical:false},
+    {key:'params',label:'Parametry',critical:false},
+  ];
+  if(_feedCoverageChart)_feedCoverageChart.destroy();
+  _feedCoverageChart=new Chart(ctx,{type:'bar',
+    data:{
+      labels:fields.map(f=>f.label),
+      datasets:[{
+        label:'Vyplněno',
+        data:fields.map(f=>has[f.key]||0),
+        backgroundColor:fields.map(f=>{const pct=(has[f.key]||0)/total;return pct>=0.9?'#19875499':pct>=0.5?'#fd7e1499':'#dc354599';}),
+        borderWidth:0
+      },{
+        label:'Chybí',
+        data:fields.map(f=>total-(has[f.key]||0)),
+        backgroundColor:'#e9ecef',
+        borderWidth:0
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{boxWidth:12,font:{size:11}}}},
+      scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,beginAtZero:true,grid:{color:'#0001'}}}}
+  });
+
+  // Feed score
+  const weights={price:20,imgUrl:15,categoryText:15,deliveryDate:15,ean:15,manufacturer:10,params:10};
+  let score=0;
+  for(const [k,w] of Object.entries(weights)){
+    score+=(has[k]||0)/total*w;
+  }
+  score=Math.round(score);
+  const scoreColor=score>=80?'#198754':score>=50?'#fd7e14':'#dc3545';
+  document.getElementById('feed-score').innerHTML=`
+    <div style="font-size:3.5rem;font-weight:800;color:${scoreColor}">${score}<span style="font-size:1.5rem">%</span></div>
+    <div class="text-muted small">${score>=80?'Výborná kvalita feedu':score>=50?'Průměrná kvalita – je co zlepšit':'Nízká kvalita feedu – vyžaduje pozornost'}</div>
+  `;
+
+  // Checklist
+  document.getElementById('feed-checklist').innerHTML=`<table class="table table-sm tbl mt-3 mb-0">
+    <thead><tr><th>Pole</th><th class="text-end">Vyplněno</th><th class="text-end">%</th><th>Stav</th></tr></thead>
+    <tbody>${fields.map(f=>{
+      const cnt=has[f.key]||0;
+      const p=total>0?Math.round(cnt/total*100):0;
+      const st=p>=95?'<span class="bc-green">OK</span>':p>=50?'<span class="bc-orange">Zlepšit</span>':'<span class="bc-red">Kritické</span>';
+      return `<tr><td>${f.label}${f.critical?' <span class="bc-red" style="font-size:.6rem">povinné</span>':''}</td>
+        <td class="text-end">${num(cnt)} / ${num(total)}</td><td class="text-end fw-semibold">${p}%</td><td>${st}</td></tr>`;
+    }).join('')}</tbody></table>`;
+
+  // Extra message doporučení
+  const emr=fq.extra_message_recommendations||[];
+  document.getElementById('feed-extra-msg').innerHTML=emr.length
+    ?emr.map(e=>`<div class="rec tip mb-2">
+        <div class="fw-semibold"><i class="bi bi-tag me-1 text-success"></i>${esc(e.label)}</div>
+        <div class="text-muted small mt-1">${esc(e.reason)}</div>
+        <div class="small mt-1">Dotčeno položek: <strong>${num(e.count)}</strong></div>
+        <div class="mt-1"><code class="small">&lt;EXTRA_MESSAGE&gt;${esc(e.message)}&lt;/EXTRA_MESSAGE&gt;</code></div>
+      </div>`).join('')
+    :'<span class="text-muted small">Žádná doporučení</span>';
+}
+
 /* API EXPLORER */
 const EX_PARAMS={
   diagnostics:[],
@@ -1080,6 +1615,109 @@ async function exCall(){
 function exCopy(){
   const txt=document.getElementById('ex-result').textContent;
   if(txt) navigator.clipboard.writeText(txt);
+}
+
+/* AI DOPORUČENÍ */
+let _aiGenerated = false;
+
+async function runAI(){
+  if(!REPORT){ alert('Nejdřív načtěte data.'); return; }
+  const btn=document.getElementById('ai-btn');
+  const spin=document.getElementById('ai-spin');
+  const errEl=document.getElementById('ai-error');
+  const outEl=document.getElementById('ai-output');
+  const textEl=document.getElementById('ai-text');
+  const hint=document.getElementById('ai-hint');
+
+  btn.disabled=true;
+  btn.innerHTML='<i class="bi bi-hourglass-split me-1"></i>Generuji…';
+  spin.classList.remove('d-none');
+  errEl.classList.add('d-none');
+  textEl.innerHTML='';
+  outEl.classList.remove('d-none');
+  hint.classList.add('d-none');
+
+  let fullText='';
+  try{
+    const resp=await fetch('/ai/recommend',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({report:REPORT})
+    });
+    if(!resp.ok){
+      let msg='Chyba serveru ('+resp.status+').';
+      try{ const d=await resp.json(); msg=d.error||msg; }catch(e){}
+      errEl.textContent=msg; errEl.classList.remove('d-none');
+      btn.disabled=false; btn.innerHTML='<i class="bi bi-magic me-1"></i>Generovat doporučení';
+      spin.classList.add('d-none');
+      return;
+    }
+    const reader=resp.body.getReader();
+    const decoder=new TextDecoder();
+    let buf='';
+    textEl.classList.add('ai-cursor');
+    while(true){
+      const {done,value}=await reader.read();
+      if(done) break;
+      buf+=decoder.decode(value,{stream:true});
+      const lines=buf.split('\n');
+      buf=lines.pop();
+      for(const line of lines){
+        if(!line.startsWith('data: ')) continue;
+        try{
+          const ev=JSON.parse(line.slice(6));
+          if(ev.type==='token'){
+            fullText+=ev.text;
+            textEl.innerHTML=renderMarkdown(fullText);
+          } else if(ev.type==='error'){
+            errEl.textContent=ev.error;
+            errEl.classList.remove('d-none');
+          }
+        }catch(e){}
+      }
+    }
+    textEl.classList.remove('ai-cursor');
+    _aiGenerated=true;
+  }catch(e){
+    errEl.textContent='Síťová chyba: '+e.message;
+    errEl.classList.remove('d-none');
+    textEl.classList.remove('ai-cursor');
+  }
+  btn.disabled=false;
+  btn.innerHTML='<i class="bi bi-arrow-clockwise me-1"></i>Vygenerovat znovu';
+  spin.classList.add('d-none');
+}
+
+function renderMarkdown(md){
+  // Simple markdown to HTML
+  return md
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/^- (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/gs, m => '<ul>'+m+'</ul>')
+    .replace(/<\/ul>\s*<ul>/g,'')
+    .replace(/^(\d+)\. (.+)$/gm,'<li>$2</li>')
+    .replace(/\n\n/g,'<br><br>')
+    .replace(/\n/g,'<br>');
+}
+
+/* PDF EXPORT */
+function exportPDF(){
+  // Přepneme na světlý režim pro tisk
+  const html=document.documentElement;
+  const wasDark=html.getAttribute('data-theme')==='dark';
+  if(wasDark) html.setAttribute('data-theme','light');
+  // Zobrazíme všechny tab panes pro tisk
+  document.querySelectorAll('.tab-pane').forEach(p=>{p._prevClass=p.className;p.className='tab-pane fade show active';});
+  setTimeout(()=>{
+    window.print();
+    // Obnovíme
+    document.querySelectorAll('.tab-pane').forEach(p=>{if(p._prevClass)p.className=p._prevClass;});
+    if(wasDark) html.setAttribute('data-theme','dark');
+  },100);
 }
 
 /* CSV EXPORT */
